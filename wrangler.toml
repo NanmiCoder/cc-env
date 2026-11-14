@@ -1,0 +1,8 @@
+name = "claude-env-guard"
+compatibility_date = "2026-01-01"
+pages_build_output_dir = "dist"
+
+# 可选：如果你在 Cloudflare Dashboard 创建了 KV 命名空间用于长期缓存 IP 情报，取消下面注释并填入 ID
+# [[kv_namespaces]]
+# binding = "IP_CACHE"
+# id = "your-kv-namespace-id"
