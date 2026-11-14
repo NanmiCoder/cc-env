@@ -12,7 +12,6 @@ import {
   EyeOff,
   FlaskConical,
   Globe,
-  History,
   Info,
   Laptop,
   Moon,
@@ -23,7 +22,6 @@ import {
   ShieldAlert,
   Smartphone,
   Sun,
-  Wifi,
   XCircle,
 } from 'lucide-react';
 import { ClaudeFlowerLogo, ScrambleIn } from './components/BrandAndText';
@@ -75,73 +73,67 @@ interface FullReport {
 const GRADE_STYLES: Record<
   RiskGrade,
   {
-    bg: string;
-    border: string;
     text: string;
     ring: string;
     badge: string;
+    dot: string;
   }
 > = {
   S: {
-    bg: 'from-emerald-500/15 via-emerald-500/5 to-transparent',
-    border: 'border-emerald-500/40',
     text: 'text-emerald-500',
     ring: 'stroke-emerald-500',
-    badge: 'bg-emerald-500/15 text-emerald-500 border-emerald-500/30',
+    badge: 'bg-emerald-500/12 text-emerald-500 border-emerald-500/25',
+    dot: 'bg-emerald-500',
   },
   A: {
-    bg: 'from-cyan-500/15 via-cyan-500/5 to-transparent',
-    border: 'border-cyan-500/40',
-    text: 'text-cyan-500',
-    ring: 'stroke-cyan-500',
-    badge: 'bg-cyan-500/15 text-cyan-500 border-cyan-500/30',
+    text: 'text-emerald-500',
+    ring: 'stroke-emerald-500',
+    badge: 'bg-emerald-500/12 text-emerald-500 border-emerald-500/25',
+    dot: 'bg-emerald-500',
   },
   B: {
-    bg: 'from-amber-500/15 via-amber-500/5 to-transparent',
-    border: 'border-amber-500/40',
     text: 'text-amber-500',
     ring: 'stroke-amber-500',
-    badge: 'bg-amber-500/15 text-amber-500 border-amber-500/30',
+    badge: 'bg-amber-500/12 text-amber-500 border-amber-500/25',
+    dot: 'bg-amber-500',
   },
   C: {
-    bg: 'from-orange-500/15 via-orange-500/5 to-transparent',
-    border: 'border-orange-500/40',
-    text: 'text-orange-500',
-    ring: 'stroke-orange-500',
-    badge: 'bg-orange-500/15 text-orange-500 border-orange-500/30',
+    text: 'text-[#D97757]',
+    ring: 'stroke-[#D97757]',
+    badge: 'bg-[#D97757]/12 text-[#D97757] border-[#D97757]/30',
+    dot: 'bg-[#D97757]',
   },
   F: {
-    bg: 'from-rose-500/20 via-rose-500/5 to-transparent',
-    border: 'border-rose-500/50',
     text: 'text-rose-500',
     ring: 'stroke-rose-500',
-    badge: 'bg-rose-500/15 text-rose-500 border-rose-500/30',
+    badge: 'bg-rose-500/12 text-rose-500 border-rose-500/25',
+    dot: 'bg-rose-500',
   },
 };
 
 const SEVERITY_CONFIG: Record<
   FindingSeverity,
-  { icon: typeof CheckCircle2; color: string; bg: string }
+  { icon: typeof CheckCircle2; color: string; bar: string }
 > = {
   pass: {
     icon: CheckCircle2,
     color: 'text-emerald-500',
-    bg: 'bg-emerald-500/[0.08] border-emerald-500/25',
+    bar: 'bg-emerald-500',
   },
   info: {
     icon: Info,
-    color: 'text-cyan-500',
-    bg: 'bg-cyan-500/[0.08] border-cyan-500/25',
+    color: 'text-[var(--text-secondary)]',
+    bar: 'bg-zinc-400',
   },
   warn: {
     icon: AlertTriangle,
     color: 'text-amber-500',
-    bg: 'bg-amber-500/[0.08] border-amber-500/25',
+    bar: 'bg-amber-500',
   },
   danger: {
     icon: XCircle,
     color: 'text-rose-500',
-    bg: 'bg-rose-500/[0.08] border-rose-500/30',
+    bar: 'bg-rose-500',
   },
 };
 
@@ -150,17 +142,17 @@ const CASCADE_CONTAINER = {
   show: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.06,
+      staggerChildren: 0.05,
     },
   },
 };
 
 const CASCADE_ITEM = {
-  hidden: { opacity: 0, y: 16 },
+  hidden: { opacity: 0, y: 12 },
   show: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.45, ease: [0.22, 1, 0.36, 1] as const },
+    transition: { type: 'spring' as const, stiffness: 120, damping: 20 },
   },
 };
 
@@ -179,7 +171,7 @@ function maskIp(ip: string | null | undefined, hidden: boolean): string {
 }
 
 function ScoreRing({ score, grade }: { score: number; grade: RiskGrade }) {
-  const radius = 52;
+  const radius = 46;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (score / 100) * circumference;
   const style = GRADE_STYLES[grade];
@@ -187,7 +179,7 @@ function ScoreRing({ score, grade }: { score: number; grade: RiskGrade }) {
 
   useEffect(() => {
     let frame = 0;
-    const totalFrames = 32;
+    const totalFrames = 30;
     const timer = setInterval(() => {
       frame += 1;
       const progress = 1 - Math.pow(1 - frame / totalFrames, 3);
@@ -196,32 +188,32 @@ function ScoreRing({ score, grade }: { score: number; grade: RiskGrade }) {
         setDisplayScore(score);
         clearInterval(timer);
       }
-    }, 20);
+    }, 18);
     return () => clearInterval(timer);
   }, [score]);
 
   return (
-    <div className="relative flex h-36 w-36 shrink-0 items-center justify-center">
-      <svg className="h-36 w-36 -rotate-90" viewBox="0 0 128 128">
+    <div className="relative flex h-28 w-28 shrink-0 items-center justify-center">
+      <svg className="h-28 w-28 -rotate-90" viewBox="0 0 112 112">
         <circle
-          cx="64"
-          cy="64"
+          cx="56"
+          cy="56"
           r={radius}
           fill="none"
           stroke="var(--ring-track)"
-          strokeWidth="7"
+          strokeWidth="6"
         />
         <motion.circle
-          cx="64"
-          cy="64"
+          cx="56"
+          cy="56"
           r={radius}
           fill="none"
-          strokeWidth="7"
+          strokeWidth="6"
           strokeLinecap="round"
           strokeDasharray={circumference}
           initial={{ strokeDashoffset: circumference }}
           animate={{ strokeDashoffset: offset }}
-          transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
+          transition={{ type: 'spring', stiffness: 75, damping: 18 }}
           className={style.ring}
         />
       </svg>
@@ -229,8 +221,8 @@ function ScoreRing({ score, grade }: { score: number; grade: RiskGrade }) {
         <span className={`font-mono text-3xl font-bold tracking-tight ${style.text}`}>
           {displayScore}
         </span>
-        <span className="mt-0.5 font-mono text-[10px] uppercase tracking-widest text-[var(--text-muted)]">
-          {grade} 级风险
+        <span className="font-mono text-[10px] font-medium uppercase tracking-widest text-[var(--text-muted)]">
+          {grade} 级
         </span>
       </div>
     </div>
@@ -248,7 +240,7 @@ function BoolTag({
 }) {
   if (value === null) {
     return (
-      <span className="inline-flex items-center rounded-md border border-[var(--border-subtle)] bg-[var(--bg-inner)] px-2 py-0.5 font-mono text-[11px] text-[var(--text-muted)]">
+      <span className="inline-flex items-center rounded-md border border-[var(--border-soft)] bg-[var(--bg-inner)] px-2 py-0.5 font-mono text-[11px] text-[var(--text-muted)]">
         {label}: 未知
       </span>
     );
@@ -258,8 +250,8 @@ function BoolTag({
     <span
       className={`inline-flex items-center rounded-md border px-2 py-0.5 font-mono text-[11px] ${
         isBad
-          ? 'border-rose-500/35 bg-rose-500/12 text-rose-500'
-          : 'border-emerald-500/30 bg-emerald-500/12 text-emerald-500'
+          ? 'border-rose-500/25 bg-rose-500/10 text-rose-500'
+          : 'border-emerald-500/25 bg-emerald-500/10 text-emerald-500'
       }`}
     >
       {label}: {value ? '是' : '否'}
@@ -432,740 +424,683 @@ export default function App() {
   const ladderOrder: RiskGrade[] = ['F', 'C', 'B', 'A', 'S'];
 
   return (
-    <div className="relative min-h-screen overflow-x-hidden bg-[var(--bg-page)] text-[var(--text-primary)]">
-      {/* Subtle Dot Grid & Anthropic Terracotta Glow */}
-      <div className="dot-grid pointer-events-none fixed inset-0 opacity-70" />
-      <div className="pointer-events-none fixed inset-x-0 top-0 h-[420px] bg-[radial-gradient(ellipse_at_top,rgba(217,119,87,0.16),rgba(16,185,129,0.04)_45%,transparent_75%)]" />
-      <div className="watermark-font pointer-events-none fixed inset-x-0 top-14 select-none text-center text-[clamp(68px,16vw,210px)] uppercase leading-none tracking-[-0.04em]">
-        ANTHROPIC · AUDIT
-      </div>
+    <div className="relative min-h-[100dvh] overflow-x-hidden bg-[var(--bg-page)] text-[var(--text-primary)]">
+      {/* Subtle Top Ambient Terracotta Glow */}
+      <div className="pointer-events-none fixed inset-x-0 top-0 h-[360px] bg-[radial-gradient(ellipse_at_top,rgba(217,119,87,0.08),transparent_70%)]" />
 
-      <div className="relative mx-auto w-full max-w-[1440px] px-4 pb-16 pt-5 sm:px-6 lg:px-8">
-        {/* Glass Pill Navbar */}
-        <motion.header
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.45 }}
-          className="mb-7 flex flex-wrap items-center justify-between gap-3"
-        >
-          <div className="flex items-center gap-2.5">
-            <div className="flex h-11 items-center gap-2.5 rounded-[14px] border border-[var(--border-subtle)] bg-[var(--bg-surface-strong)] px-4 backdrop-blur-md">
+      {/* Slim Architectural Topbar */}
+      <header className="relative border-b border-[var(--border-subtle)] bg-[var(--bg-page)]/80 backdrop-blur-md">
+        <div className="mx-auto flex h-14 w-full max-w-[1400px] items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               <ClaudeFlowerLogo className="h-5 w-5 text-[#D97757]" />
               <span className="font-mono text-sm font-bold tracking-tight text-[var(--text-primary)]">
                 CC Env
               </span>
-              <span className="inline-flex items-center gap-1 rounded-full border border-[#D97757]/40 bg-[#D97757]/15 px-2 py-0.5 font-mono text-[10px] font-semibold text-[#D97757]">
+              <span className="inline-flex items-center gap-1 rounded border border-[#D97757]/30 bg-[#D97757]/10 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-[#D97757]">
                 <FlaskConical className="h-2.5 w-2.5" />
                 LABS
               </span>
             </div>
 
             {report && !loading && (
-              <div className="hidden h-11 items-center gap-2 rounded-[14px] border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-3.5 font-mono text-xs text-[var(--text-secondary)] backdrop-blur-md sm:flex">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                <span>COLO: {report.server.edge.colo}</span>
+              <div className="hidden items-center gap-2 border-l border-[var(--border-subtle)] pl-3 font-mono text-[11px] text-[var(--text-muted)] sm:flex">
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
+                <span>COLO {report.server.edge.colo}</span>
                 {report.server.edge.clientTcpRtt !== null && (
-                  <span className="text-[var(--text-muted)]">· {report.server.edge.clientTcpRtt}ms</span>
+                  <span>· {report.server.edge.clientTcpRtt} ms</span>
                 )}
               </div>
             )}
           </div>
 
-          <div className="flex flex-wrap items-center gap-2">
-            {/* Theme Toggle */}
+          <div className="flex items-center gap-2">
             <button
               onClick={toggleTheme}
-              className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-[var(--border-subtle)] bg-[var(--bg-surface-strong)] text-[var(--text-secondary)] transition hover:border-[#D97757]/50 hover:text-[var(--text-primary)]"
+              className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--text-secondary)] transition hover:border-[#D97757]/40 hover:text-[var(--text-primary)] active:scale-[0.96]"
               title={theme === 'dark' ? '切换为亮色主题' : '切换为暗色主题'}
               aria-label="切换亮色/暗色主题"
             >
-              {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+              {theme === 'dark' ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
             </button>
 
             <button
               onClick={() => setHideIp((v) => !v)}
-              className={`inline-flex h-10 items-center gap-1.5 rounded-full border px-3.5 font-mono text-xs transition ${
+              className={`inline-flex h-8 items-center gap-1.5 rounded-lg border px-2.5 font-mono text-[11px] transition active:scale-[0.98] ${
                 hideIp
-                  ? 'border-[var(--border-subtle)] bg-[var(--bg-surface-strong)] text-[var(--text-secondary)] hover:border-[#D97757]/40'
-                  : 'border-amber-500/40 bg-amber-500/15 text-amber-500'
+                  ? 'border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:border-[#D97757]/40'
+                  : 'border-amber-500/35 bg-amber-500/10 text-amber-500'
               }`}
             >
               {hideIp ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
-              {hideIp ? '显示 IP' : '隐藏 IP'}
+              <span className="hidden sm:inline">{hideIp ? '显示 IP' : '隐藏 IP'}</span>
             </button>
 
             <button
               onClick={() => setShareOpen(true)}
               disabled={!report || loading}
-              className="inline-flex h-10 items-center gap-1.5 rounded-full border border-[var(--border-subtle)] bg-[var(--bg-surface-strong)] px-3.5 font-mono text-xs text-[var(--text-primary)] transition hover:border-[#D97757]/50 disabled:opacity-40"
+              className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-2.5 font-mono text-[11px] text-[var(--text-primary)] transition hover:border-[#D97757]/45 active:scale-[0.98] disabled:opacity-40"
             >
               <Share2 className="h-3.5 w-3.5 text-[#D97757]" />
-              分享报告
+              <span className="hidden sm:inline">分享报告</span>
             </button>
 
             <button
               onClick={runScan}
               disabled={loading}
-              className="inline-flex h-10 items-center gap-1.5 rounded-full bg-[var(--cta-bg)] px-4 font-mono text-xs font-bold text-[var(--cta-text)] transition hover:opacity-90 disabled:opacity-60"
+              className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-[var(--cta-bg)] px-3 font-mono text-[11px] font-semibold text-[var(--cta-text)] transition hover:opacity-90 active:scale-[0.98] disabled:opacity-60"
             >
-              <RefreshCw className={`h-3.5 w-3.5 ${loading ? 'animate-spin' : ''}`} />
-              {loading ? '扫描中' : '重新检测'}
+              <RefreshCw className={`h-3 w-3 ${loading ? 'animate-spin' : ''}`} />
+              <span>{loading ? '扫描中' : '重新检测'}</span>
             </button>
           </div>
-        </motion.header>
+        </div>
+      </header>
 
-        {/* Main Workspace + Right Sticky Ecosystem Sidebar */}
-        <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_310px] xl:items-start">
+      {/* Main Workspace + Right Sticky Ecosystem Sidebar */}
+      <div className="relative mx-auto w-full max-w-[1400px] px-4 py-6 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_304px] xl:items-start">
           <main className="min-w-0">
-            {/* Editorial Hero & Experimental Intro */}
-        <motion.section
-          initial={{ opacity: 0, y: 14 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
-          className="mb-6 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-5 backdrop-blur-md sm:p-6"
-        >
-          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-            <div className="min-w-0">
-              <div className="mb-2 inline-flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.18em] text-[#D97757]">
-                <ClaudeFlowerLogo className="h-3.5 w-3.5" />
-                <span>CC Env · Experimental Risk Telemetry</span>
+            {/* Loading Skeleton */}
+            {loading && <ReportSkeleton stageText={stageText} />}
+
+            {/* Error State */}
+            {error && (
+              <div className="mb-6 flex items-center justify-between rounded-xl border border-rose-500/35 bg-rose-500/10 px-4 py-3 text-sm text-rose-500">
+                <div className="flex items-center gap-2.5">
+                  <ShieldAlert className="h-5 w-5 shrink-0" />
+                  <span>{error}</span>
+                </div>
+                <button
+                  onClick={runScan}
+                  className="rounded-lg bg-rose-500/20 px-3 py-1 text-xs font-medium transition hover:bg-rose-500/30 active:scale-[0.98]"
+                >
+                  重试
+                </button>
               </div>
-              <h1 className="text-2xl font-semibold tracking-tight text-[var(--text-primary)] sm:text-3xl">
-                <ScrambleIn text="Anthropic 网络环境与 IP 纯净度自检" delay={80} />
-              </h1>
-              <p className="mt-2 max-w-2xl text-xs leading-relaxed text-[var(--text-secondary)] sm:text-sm">
-                专为规避 Claude / Anthropic 账号风控打造的实验性检测台。打开即测，默认脱敏隐藏所有公网 IP，点击任意 IP 可手动展开。
-              </p>
-            </div>
+            )}
 
-            <button
-              type="button"
-              onClick={() => setIntroOpen((v) => !v)}
-              className="inline-flex shrink-0 items-center gap-1.5 self-start rounded-full border border-[var(--border-subtle)] bg-[var(--bg-inner)] px-3 py-1.5 font-mono text-[11px] text-[var(--text-muted)] transition hover:text-[var(--text-primary)] lg:self-end"
-            >
-              <span>{introOpen ? '收起检测原理' : '查看检测原理'}</span>
-              {introOpen ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
-            </button>
-          </div>
-
-          {introOpen && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              transition={{ duration: 0.3 }}
-              className="mt-5 grid gap-3 border-t border-[var(--border-subtle)] pt-4 text-xs sm:grid-cols-3"
-            >
-              <div className="min-w-0 rounded-xl border border-[var(--border-soft)] bg-[var(--bg-inner)] p-3.5">
-                <div className="mb-1 font-mono font-bold text-[#D97757]">01 / 出口与家宽分级</div>
-                <p className="leading-relaxed text-[var(--text-muted)]">
-                  结合 Cloudflare 边缘遥测与多源 IP 情报库，区分「原生家宽 ISP」「商业机房 VPS」与「万人骑共享/滥用节点」。
-                </p>
-              </div>
-              <div className="min-w-0 rounded-xl border border-[var(--border-soft)] bg-[var(--bg-inner)] p-3.5">
-                <div className="mb-1 font-mono font-bold text-emerald-500">02 / 分流与泄露探针</div>
-                <p className="leading-relaxed text-[var(--text-muted)]">
-                  并发探测国内直连出口、EDNS 解析器归属地与 WebRTC STUN UDP 通道，抓出规则分流与底层真实 IP 泄露。
-                </p>
-              </div>
-              <div className="min-w-0 rounded-xl border border-[var(--border-soft)] bg-[var(--bg-inner)] p-3.5">
-                <div className="mb-1 font-mono font-bold text-cyan-500">03 / 中文指纹一致性</div>
-                <p className="leading-relaxed text-[var(--text-muted)]">
-                  核验系统时区（如东八区 UTC+8）、浏览器语言偏好、中文字体及国产 App WebView 特征，避免环境穿帮。
-                </p>
-              </div>
-            </motion.div>
-          )}
-        </motion.section>
-
-        {/* Loading Skeleton State */}
-        {loading && <ReportSkeleton stageText={stageText} />}
-
-        {/* Error State */}
-        {error && (
-          <div className="mb-6 flex items-center justify-between rounded-xl border border-rose-500/40 bg-rose-500/10 px-4 py-3 text-sm text-rose-500">
-            <div className="flex items-center gap-2.5">
-              <ShieldAlert className="h-5 w-5 shrink-0" />
-              <span>{error}</span>
-            </div>
-            <button
-              onClick={runScan}
-              className="rounded-lg bg-rose-500/20 px-3 py-1 text-xs font-medium hover:bg-rose-500/30"
-            >
-              重试
-            </button>
-          </div>
-        )}
-
-        {/* Main Report with Staggered Cascade */}
-        {!loading && report && (
-          <motion.div
-            variants={CASCADE_CONTAINER}
-            initial="hidden"
-            animate="show"
-            className="space-y-5"
-          >
-            {/* Top 3-Column Exit Comparison Strip */}
-            <motion.section
-              variants={CASCADE_ITEM}
-              className="grid grid-cols-1 gap-4 md:grid-cols-3"
-            >
-              <div
-                onClick={() => setHideIp((v) => !v)}
-                className="min-w-0 cursor-pointer overflow-hidden rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4 transition duration-200 hover:-translate-y-0.5 hover:border-[#D97757]/40"
-                title="点击切换显示/隐藏 IP"
+            {/* Main Report */}
+            {!loading && report && (
+              <motion.div
+                variants={CASCADE_CONTAINER}
+                initial="hidden"
+                animate="show"
+                className="space-y-5"
               >
-                <div className="mb-2 flex items-center justify-between gap-2">
-                  <span className="text-xs font-medium text-[var(--text-muted)]">国内直连出口</span>
-                  <span
-                    className={`shrink-0 rounded px-2 py-0.5 font-mono text-[10px] font-medium ${
-                      report.domesticIp.isChinaDirect
-                        ? 'bg-amber-500/15 text-amber-500'
-                        : 'bg-emerald-500/15 text-emerald-500'
-                    }`}
-                  >
-                    {report.domesticIp.isChinaDirect ? '已检出分流直连' : '未检出/同出口'}
-                  </span>
-                </div>
-                <div className="flex min-w-0 items-center gap-2">
-                  <span
-                    className={`truncate font-mono font-bold tracking-tight text-[var(--text-primary)] ${
-                      !hideIp && report.domesticIp.ip?.includes(':') ? 'text-sm sm:text-base' : 'text-lg sm:text-xl'
-                    }`}
-                  >
-                    {report.domesticIp.ip ? maskIp(report.domesticIp.ip, hideIp) : '未直连'}
-                  </span>
-                  {report.domesticIp.ip && hideIp && (
-                    <span className="shrink-0 rounded bg-[var(--bg-inner)] px-1.5 py-0.5 font-mono text-[10px] text-[var(--text-muted)]">
-                      点击展开
-                    </span>
-                  )}
-                </div>
-                <p className="mt-1.5 truncate text-xs text-[var(--text-muted)]">
-                  {report.domesticIp.locationLabel || '可能处于全局代理或海外原生网络'}
-                </p>
-              </div>
+                {/* Unified Split Hero + Risk Instrument */}
+                <motion.section
+                  variants={CASCADE_ITEM}
+                  className="surface-card overflow-hidden rounded-2xl"
+                >
+                  <div className="grid grid-cols-1 divide-y divide-[var(--border-soft)] lg:grid-cols-[1.2fr_0.85fr] lg:divide-x lg:divide-y-0">
+                    {/* Left: Editorial Title + Inline 3-Point Exit Strip */}
+                    <div className="flex flex-col justify-between p-5 sm:p-6">
+                      <div>
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-[#D97757]">
+                            Anthropic Environment Telemetry
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => setIntroOpen((v) => !v)}
+                            className="inline-flex items-center gap-1 font-mono text-[11px] text-[var(--text-muted)] transition hover:text-[var(--text-primary)]"
+                          >
+                            <span>{introOpen ? '收起原理' : '检测原理'}</span>
+                            {introOpen ? (
+                              <ChevronUp className="h-3 w-3" />
+                            ) : (
+                              <ChevronDown className="h-3 w-3" />
+                            )}
+                          </button>
+                        </div>
 
-              <div
-                onClick={() => setHideIp((v) => !v)}
-                className="min-w-0 cursor-pointer overflow-hidden rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4 transition duration-200 hover:-translate-y-0.5 hover:border-[#D97757]/40"
-                title="点击切换显示/隐藏 IP"
-              >
-                <div className="mb-2 flex items-center justify-between gap-2">
-                  <span className="text-xs font-medium text-[var(--text-muted)]">Cloudflare / 海外出口</span>
-                  <span className="shrink-0 rounded bg-cyan-500/15 px-2 py-0.5 font-mono text-[10px] text-cyan-500">
-                    {report.server.geo.country}
-                  </span>
-                </div>
-                <div className="flex min-w-0 items-center gap-2">
-                  <span
-                    className={`truncate font-mono font-bold tracking-tight text-[var(--text-primary)] ${
-                      !hideIp && report.server.ip.includes(':') ? 'text-sm sm:text-base' : 'text-lg sm:text-xl'
-                    }`}
-                  >
-                    {maskIp(report.server.ip, hideIp)}
-                  </span>
-                  {hideIp && (
-                    <span className="shrink-0 rounded bg-[var(--bg-inner)] px-1.5 py-0.5 font-mono text-[10px] text-[var(--text-muted)]">
-                      点击展开
-                    </span>
-                  )}
-                </div>
-                <p className="mt-1.5 truncate text-xs text-[var(--text-muted)]">
-                  {report.server.geo.country} {report.server.geo.city || ''} · AS
-                  {report.server.network.asn ?? '-'} {report.server.network.asOrg || ''}
-                </p>
-              </div>
+                        <h1 className="mt-2 text-2xl font-semibold tracking-tight text-[var(--text-primary)] sm:text-[28px] sm:leading-tight">
+                          <ScrambleIn text="Anthropic 网络环境与 IP 纯净度自检" delay={40} />
+                        </h1>
+                        <p className="mt-2 max-w-[60ch] text-xs leading-relaxed text-[var(--text-secondary)] sm:text-sm">
+                          专为规避 Claude / Anthropic 账号风控打造的实验性体检台。默认脱敏隐藏公网 IP，点击任意 IP 字段即可展开。
+                        </p>
 
-              <div className="min-w-0 overflow-hidden rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4 transition duration-200 hover:-translate-y-0.5">
-                <div className="mb-2 flex items-center justify-between gap-2">
-                  <span className="flex items-center gap-1.5 text-xs font-medium text-[var(--text-muted)]">
-                    <History className="h-3.5 w-3.5" />
-                    IP 与上次一致
-                  </span>
-                  <span
-                    className={`shrink-0 rounded px-2 py-0.5 font-mono text-[10px] font-medium ${
-                      report.history.status === 'changed'
-                        ? 'bg-amber-500/15 text-amber-500'
-                        : 'bg-emerald-500/15 text-emerald-500'
-                    }`}
-                  >
-                    {report.history.status === 'same'
-                      ? '出口稳定'
-                      : report.history.status === 'changed'
-                        ? 'IP 已跳变'
-                        : '首次记录'}
-                  </span>
-                </div>
-                <div className="truncate font-mono text-lg font-bold tracking-tight text-[var(--text-primary)] sm:text-xl">
-                  {report.history.status === 'same'
-                    ? '一致'
-                    : report.history.status === 'changed'
-                      ? '已变更'
-                      : '已记录'}
-                </div>
-                <p className="mt-1.5 truncate text-xs text-[var(--text-muted)]">
-                  {report.history.previousIp
-                    ? `上次: ${maskIp(report.history.previousIp, hideIp)} (${report.history.previousCountry || '-'})`
-                    : '下次刷新或切换节点后将自动对比'}
-                </p>
-              </div>
-            </motion.section>
+                        {introOpen && (
+                          <div className="mt-4 grid gap-3 border-t border-[var(--border-soft)] pt-4 text-xs sm:grid-cols-3">
+                            <div>
+                              <div className="font-mono text-[11px] font-semibold text-[#D97757]">
+                                01 / 出口与家宽分级
+                              </div>
+                              <p className="mt-1 leading-relaxed text-[var(--text-muted)]">
+                                结合边缘遥测与多源 IP 情报，区分原生家宽 ISP、商业机房 VPS 与共享滥用节点。
+                              </p>
+                            </div>
+                            <div>
+                              <div className="font-mono text-[11px] font-semibold text-[var(--text-primary)]">
+                                02 / 分流与泄露探针
+                              </div>
+                              <p className="mt-1 leading-relaxed text-[var(--text-muted)]">
+                                并发探测国内直连出口、EDNS 解析归属与 WebRTC UDP 通道，抓出规则分流与底层泄露。
+                              </p>
+                            </div>
+                            <div>
+                              <div className="font-mono text-[11px] font-semibold text-[var(--text-primary)]">
+                                03 / 中文指纹一致性
+                              </div>
+                              <p className="mt-1 leading-relaxed text-[var(--text-muted)]">
+                                核验系统时区、浏览器语言偏好与中文字体特征，避免环境穿帮。
+                              </p>
+                            </div>
+                          </div>
+                        )}
+                      </div>
 
-            {/* Hero Score & 5-Tier Grade Card */}
-            <motion.section
-              variants={CASCADE_ITEM}
-              className={`overflow-hidden rounded-2xl border bg-gradient-to-br p-5 sm:p-6 ${gradeStyle.border} ${gradeStyle.bg} bg-[var(--bg-surface)]`}
-            >
-              <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-                <div className="flex flex-col items-start gap-5 sm:flex-row sm:items-center">
-                  <ScoreRing score={report.assessment.score} grade={report.assessment.grade} />
+                      {/* Inline 3-Point Exit Telemetry Strip */}
+                      <div className="mt-6 grid grid-cols-1 divide-y divide-[var(--border-soft)] border-t border-[var(--border-soft)] pt-4 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
+                        <div
+                          onClick={() => setHideIp((v) => !v)}
+                          className="cursor-pointer py-2 transition hover:opacity-80 sm:py-0 sm:pr-4"
+                          title="点击切换显示/隐藏 IP"
+                        >
+                          <div className="flex items-center justify-between gap-1.5">
+                            <span className="text-[11px] text-[var(--text-muted)]">国内直连出口</span>
+                            <span
+                              className={`font-mono text-[10px] font-medium ${
+                                report.domesticIp.isChinaDirect ? 'text-amber-500' : 'text-emerald-500'
+                              }`}
+                            >
+                              {report.domesticIp.isChinaDirect ? '分流直连' : '未检出'}
+                            </span>
+                          </div>
+                          <div className="mt-1 truncate font-mono text-sm font-semibold text-[var(--text-primary)]">
+                            {report.domesticIp.ip ? maskIp(report.domesticIp.ip, hideIp) : '未直连'}
+                          </div>
+                          <div className="mt-0.5 truncate text-[11px] text-[var(--text-muted)]">
+                            {report.domesticIp.locationLabel || '全局代理或海外原生'}
+                          </div>
+                        </div>
 
-                  <div className="min-w-0 space-y-2.5">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span
-                        className={`inline-flex items-center rounded-md border px-2.5 py-0.5 font-mono text-xs font-semibold ${gradeStyle.badge}`}
-                      >
-                        {report.assessment.gradeLabel}
-                      </span>
-                      <span className="rounded-md border border-[var(--border-subtle)] bg-[var(--bg-inner)] px-2.5 py-0.5 font-mono text-xs text-[var(--text-secondary)]">
-                        {report.assessment.ipTierLabel}
-                      </span>
+                        <div
+                          onClick={() => setHideIp((v) => !v)}
+                          className="cursor-pointer py-2 transition hover:opacity-80 sm:px-4 sm:py-0"
+                          title="点击切换显示/隐藏 IP"
+                        >
+                          <div className="flex items-center justify-between gap-1.5">
+                            <span className="text-[11px] text-[var(--text-muted)]">海外代理出口</span>
+                            <span className="font-mono text-[10px] font-medium text-[#D97757]">
+                              {report.server.geo.country}
+                            </span>
+                          </div>
+                          <div className="mt-1 truncate font-mono text-sm font-semibold text-[var(--text-primary)]">
+                            {maskIp(report.server.ip, hideIp)}
+                          </div>
+                          <div className="mt-0.5 truncate text-[11px] text-[var(--text-muted)]">
+                            AS{report.server.network.asn ?? '-'} {report.server.geo.city || ''}
+                          </div>
+                        </div>
+
+                        <div className="py-2 sm:py-0 sm:pl-4">
+                          <div className="flex items-center justify-between gap-1.5">
+                            <span className="text-[11px] text-[var(--text-muted)]">出口稳定性</span>
+                            <span
+                              className={`font-mono text-[10px] font-medium ${
+                                report.history.status === 'changed' ? 'text-amber-500' : 'text-emerald-500'
+                              }`}
+                            >
+                              {report.history.status === 'same'
+                                ? '一致'
+                                : report.history.status === 'changed'
+                                  ? '跳变'
+                                  : '首次'}
+                            </span>
+                          </div>
+                          <div className="mt-1 truncate font-mono text-sm font-semibold text-[var(--text-primary)]">
+                            {report.history.status === 'same'
+                              ? '稳定未变'
+                              : report.history.status === 'changed'
+                                ? 'IP 已变更'
+                                : '已建立基线'}
+                          </div>
+                          <div className="mt-0.5 truncate text-[11px] text-[var(--text-muted)]">
+                            {report.history.previousIp
+                              ? `上次 ${maskIp(report.history.previousIp, hideIp)}`
+                              : '刷新后自动对比'}
+                          </div>
+                        </div>
+                      </div>
                     </div>
 
-                    <p className="max-w-xl text-sm leading-relaxed text-[var(--text-secondary)]">
-                      {report.assessment.gradeSummary}
-                    </p>
-                  </div>
-                </div>
+                    {/* Right: Risk Gauge + Segmented Scale */}
+                    <div className="flex flex-col justify-between gap-5 bg-[var(--bg-inner)]/45 p-5 sm:p-6">
+                      <div className="flex items-center gap-5">
+                        <ScoreRing score={report.assessment.score} grade={report.assessment.grade} />
 
-                {/* 5-Tier Risk Ladder */}
-                <div className="w-full shrink-0 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-inner)] p-3.5 lg:w-80">
-                  <div className="mb-2 flex items-center justify-between font-mono text-[11px] text-[var(--text-muted)]">
-                    <span>风控档位标尺</span>
-                    <span>{report.scannedAt}</span>
+                        <div className="min-w-0 space-y-2">
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            <span
+                              className={`inline-flex items-center rounded-md border px-2 py-0.5 font-mono text-xs font-semibold ${gradeStyle.badge}`}
+                            >
+                              {report.assessment.gradeLabel}
+                            </span>
+                            <span className="rounded-md border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-2 py-0.5 font-mono text-[11px] text-[var(--text-secondary)]">
+                              {report.assessment.ipTierLabel}
+                            </span>
+                          </div>
+                          <p className="text-xs leading-relaxed text-[var(--text-secondary)]">
+                            {report.assessment.gradeSummary}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div>
+                        <div className="mb-1.5 flex items-center justify-between font-mono text-[10px] text-[var(--text-muted)]">
+                          <span>风控档位标尺</span>
+                          <span>{report.scannedAt}</span>
+                        </div>
+                        <div className="grid grid-cols-5 gap-1">
+                          {ladderOrder.map((g) => {
+                            const active = g === report.assessment.grade;
+                            const st = GRADE_STYLES[g];
+                            return (
+                              <div
+                                key={g}
+                                className={`flex flex-col items-center rounded-md border py-1.5 text-center transition ${
+                                  active
+                                    ? `${st.badge} font-semibold`
+                                    : 'border-[var(--border-soft)] bg-[var(--bg-surface)] text-[var(--text-muted)] opacity-55'
+                                }`}
+                              >
+                                <span className="font-mono text-xs font-bold">{g}</span>
+                                <span className="text-[9px]">
+                                  {g === 'S'
+                                    ? '极净'
+                                    : g === 'A'
+                                      ? '优质'
+                                      : g === 'B'
+                                        ? '轻度'
+                                        : g === 'C'
+                                          ? '高危'
+                                          : '受限'}
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <div className="grid grid-cols-5 gap-1.5">
-                    {ladderOrder.map((g) => {
-                      const active = g === report.assessment.grade;
-                      const st = GRADE_STYLES[g];
+
+                  {/* 5 Category Meters Strip */}
+                  <div className="grid grid-cols-2 gap-4 border-t border-[var(--border-subtle)] px-5 py-4 sm:grid-cols-5 sm:px-6">
+                    {report.assessment.categories.map((cat) => {
+                      const pct = Math.round((cat.score / cat.maxScore) * 100);
+                      const barColor =
+                        cat.status === 'danger'
+                          ? 'bg-rose-500'
+                          : cat.status === 'warn'
+                            ? 'bg-amber-500'
+                            : 'bg-emerald-500';
+
                       return (
-                        <div
-                          key={g}
-                          className={`flex flex-col items-center rounded-lg border px-1 py-2 text-center transition ${
-                            active
-                              ? `${st.badge} ring-1 ring-current`
-                              : 'border-[var(--border-soft)] bg-[var(--bg-surface)] text-[var(--text-muted)] opacity-60'
-                          }`}
-                        >
-                          <span className="font-mono text-sm font-bold">{g}</span>
-                          <span className="mt-0.5 text-[10px] leading-tight">
-                            {g === 'S'
-                              ? '极净'
-                              : g === 'A'
-                                ? '优质'
-                                : g === 'B'
-                                  ? '轻度'
-                                  : g === 'C'
-                                    ? '高危'
-                                    : '受限'}
-                          </span>
+                        <div key={cat.key} className="min-w-0">
+                          <div className="flex items-center justify-between text-[11px]">
+                            <span className="truncate text-[var(--text-muted)]">{cat.label}</span>
+                            <span className="shrink-0 font-mono font-semibold text-[var(--text-primary)]">
+                              {cat.score}/{cat.maxScore}
+                            </span>
+                          </div>
+                          <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-[var(--border-subtle)]">
+                            <motion.div
+                              initial={{ width: 0 }}
+                              animate={{ width: `${pct}%` }}
+                              transition={{ type: 'spring', stiffness: 90, damping: 18 }}
+                              className={`h-full rounded-full ${barColor}`}
+                            />
+                          </div>
                         </div>
                       );
                     })}
                   </div>
-                </div>
-              </div>
 
-              {/* 5 Category Progress Bars */}
-              <div className="mt-6 grid grid-cols-2 gap-3 border-t border-[var(--border-subtle)] pt-5 sm:grid-cols-5">
-                {report.assessment.categories.map((cat) => {
-                  const pct = Math.round((cat.score / cat.maxScore) * 100);
-                  const barColor =
-                    cat.status === 'danger'
-                      ? 'bg-rose-500'
-                      : cat.status === 'warn'
-                        ? 'bg-amber-500'
-                        : cat.status === 'info'
-                          ? 'bg-cyan-500'
-                          : 'bg-emerald-500';
-
-                  return (
-                    <div
-                      key={cat.key}
-                      className="min-w-0 rounded-xl border border-[var(--border-soft)] bg-[var(--bg-inner)] p-3"
-                    >
-                      <div className="flex items-center justify-between text-xs">
-                        <span className="truncate text-[var(--text-muted)]">{cat.label}</span>
-                        <span className="shrink-0 font-mono font-semibold text-[var(--text-primary)]">
-                          {cat.score}/{cat.maxScore}
-                        </span>
-                      </div>
-                      <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-[var(--border-subtle)]">
-                        <motion.div
-                          initial={{ width: 0 }}
-                          animate={{ width: `${pct}%` }}
-                          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-                          className={`h-full rounded-full ${barColor}`}
-                        />
-                      </div>
+                  {/* Inline Agent Auto-Fix Prompt Strip */}
+                  <div className="flex flex-col gap-3 border-t border-[var(--border-soft)] bg-[#D97757]/[0.05] px-5 py-3.5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+                    <div className="flex items-start gap-2.5 sm:items-center">
+                      <Bot className="mt-0.5 h-4 w-4 shrink-0 text-[#D97757] sm:mt-0" />
+                      <p className="text-xs leading-relaxed text-[var(--text-secondary)]">
+                        <strong className="font-semibold text-[var(--text-primary)]">
+                          复制给 AI Agent 自动优化：
+                        </strong>
+                        将该诊断指令发给 Claude Code、Codex 或{' '}
+                        <span className="font-mono font-medium text-[#D97757]">CC Haha</span>
+                        ，即可协同调整浏览器语言与系统底层配置。
+                      </p>
                     </div>
-                  );
-                })}
-              </div>
 
-              {/* Agent Auto-Fix Prompt Banner (shown inside Hero after scan completes) */}
-              <div className="mt-4 flex flex-col gap-3 rounded-xl border border-[#D97757]/30 bg-[#D97757]/[0.07] px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-                <div className="flex items-start gap-2.5 sm:items-center">
-                  <Bot className="mt-0.5 h-4 w-4 shrink-0 text-[#D97757] sm:mt-0" />
-                  <p className="text-xs leading-relaxed text-[var(--text-secondary)]">
-                    <strong className="text-[var(--text-primary)]">不知道怎么手动改？</strong>
-                    复制这段诊断指令发给你的 AI Agent（如 Claude Code、Codex 或{' '}
-                    <span className="font-mono text-[#D97757]">CC Haha</span>
-                    ），让它借助终端与 Computer Use 协同帮你优化电脑和浏览器设置。
-                  </p>
-                </div>
+                    <button
+                      type="button"
+                      onClick={handleCopyAgentPrompt}
+                      className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg bg-[#D97757] px-3.5 py-2 font-mono text-xs font-semibold text-white transition hover:bg-[#c86646] active:scale-[0.98]"
+                    >
+                      {promptCopied ? (
+                        <>
+                          <Check className="h-3.5 w-3.5" />
+                          <span>已复制，去粘贴给 Agent 吧</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="h-3.5 w-3.5" />
+                          <span>复制 Agent 修复 Prompt</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </motion.section>
 
-                <button
-                  type="button"
-                  onClick={handleCopyAgentPrompt}
-                  className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg bg-[#D97757] px-3.5 py-2 font-mono text-xs font-semibold text-white transition hover:bg-[#c86646]"
+                {/* Unified 2x2 Core Telemetry Matrix */}
+                <motion.section
+                  variants={CASCADE_ITEM}
+                  className="surface-card grid grid-cols-1 divide-y divide-[var(--border-soft)] overflow-hidden rounded-2xl md:grid-cols-2 md:divide-y-0"
                 >
-                  {promptCopied ? (
-                    <>
-                      <Check className="h-3.5 w-3.5" />
-                      <span>已复制，去粘贴给 Agent 吧</span>
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="h-3.5 w-3.5" />
-                      <span>复制 Agent 修复 Prompt</span>
-                    </>
-                  )}
-                </button>
-              </div>
-            </motion.section>
+                  {/* Quadrant 1: IP & Intelligence */}
+                  <div className="min-w-0 p-5 md:border-b md:border-r md:border-[var(--border-soft)]">
+                    <div className="mb-3.5 flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 text-sm font-semibold text-[var(--text-primary)]">
+                        <Globe className="h-4 w-4 text-[#D97757]" />
+                        <span>IP 属性与安全</span>
+                      </div>
+                      <span className="font-mono text-[10px] text-[var(--text-muted)]">
+                        {report.server.network.intel.source}
+                      </span>
+                    </div>
 
-            {/* Detailed Telemetry Grid */}
-            <motion.section
-              variants={CASCADE_ITEM}
-              className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4"
-            >
-              {/* Card 1: IP & Intelligence */}
-              <div className="min-w-0 overflow-hidden rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-5 transition hover:border-[#D97757]/35">
-                <div className="mb-4 flex items-center justify-between gap-2">
-                  <div className="flex min-w-0 items-center gap-2 text-sm font-semibold text-[var(--text-primary)]">
-                    <Globe className="h-4 w-4 shrink-0 text-cyan-500" />
-                    <span className="truncate">IP 属性与安全</span>
-                  </div>
-                  <span className="shrink-0 rounded bg-[var(--bg-inner)] px-2 py-0.5 font-mono text-[10px] text-[var(--text-muted)]">
-                    {report.server.network.intel.source}
-                  </span>
-                </div>
+                    <dl className="space-y-2 text-xs">
+                      <div className="flex items-center justify-between gap-2">
+                        <dt className="text-[var(--text-muted)]">网络性质</dt>
+                        <dd className="truncate font-mono font-semibold text-[var(--text-primary)]">
+                          {report.assessment.ipTierLabel}
+                        </dd>
+                      </div>
+                      <div className="flex items-center justify-between gap-2">
+                        <dt className="text-[var(--text-muted)]">ISP / 机构</dt>
+                        <dd className="min-w-0 truncate text-right font-mono text-[var(--text-primary)]">
+                          {report.server.network.intel.companyName ||
+                            report.server.network.asOrg ||
+                            '未知'}
+                        </dd>
+                      </div>
+                      <div className="flex items-center justify-between gap-2">
+                        <dt className="text-[var(--text-muted)]">ASN</dt>
+                        <dd className="font-mono text-[var(--text-primary)]">
+                          AS{report.server.network.asn ?? '-'}
+                        </dd>
+                      </div>
+                      <div className="flex items-center justify-between gap-2">
+                        <dt className="text-[var(--text-muted)]">IPv6</dt>
+                        <dd
+                          onClick={() => setHideIp((v) => !v)}
+                          className="cursor-pointer truncate font-mono text-[var(--text-primary)]"
+                        >
+                          {report.dualStack.ipv6 ? maskIp(report.dualStack.ipv6, hideIp) : '已关闭 (安全)'}
+                        </dd>
+                      </div>
+                    </dl>
 
-                <dl className="space-y-2.5 text-xs">
-                  <div className="flex items-center justify-between gap-2">
-                    <dt className="shrink-0 text-[var(--text-muted)]">网络性质</dt>
-                    <dd className="min-w-0 truncate text-right font-mono font-semibold text-[var(--text-primary)]">
-                      {report.assessment.ipTierLabel}
-                    </dd>
+                    <div className="mt-3.5 flex flex-wrap gap-1.5 border-t border-[var(--border-soft)] pt-3">
+                      <BoolTag label="机房" value={report.server.network.intel.isDatacenter} />
+                      <BoolTag label="VPN" value={report.server.network.intel.isVpn} />
+                      <BoolTag label="Proxy" value={report.server.network.intel.isProxy} />
+                      <BoolTag label="Tor" value={report.server.network.intel.isTor} />
+                      <BoolTag label="滥用库" value={report.server.network.intel.isAbuser} />
+                    </div>
                   </div>
-                  <div className="flex items-center justify-between gap-2">
-                    <dt className="shrink-0 text-[var(--text-muted)]">ISP / 机构</dt>
-                    <dd className="min-w-0 truncate text-right font-mono text-[var(--text-primary)]">
-                      {report.server.network.intel.companyName || report.server.network.asOrg || '未知'}
-                    </dd>
-                  </div>
-                  <div className="flex items-center justify-between gap-2">
-                    <dt className="shrink-0 text-[var(--text-muted)]">ASN</dt>
-                    <dd className="truncate font-mono text-[var(--text-primary)]">
-                      AS{report.server.network.asn ?? '-'}
-                    </dd>
-                  </div>
-                  <div className="flex items-center justify-between gap-2">
-                    <dt className="shrink-0 text-[var(--text-muted)]">IPv6</dt>
-                    <dd
-                      onClick={() => setHideIp((v) => !v)}
-                      className="min-w-0 cursor-pointer truncate text-right font-mono text-[var(--text-primary)]"
-                    >
-                      {report.dualStack.ipv6 ? maskIp(report.dualStack.ipv6, hideIp) : '已关闭 (安全)'}
-                    </dd>
-                  </div>
-                </dl>
 
-                <div className="mt-4 flex flex-wrap gap-1.5 border-t border-[var(--border-subtle)] pt-3">
-                  <BoolTag label="机房" value={report.server.network.intel.isDatacenter} />
-                  <BoolTag label="VPN" value={report.server.network.intel.isVpn} />
-                  <BoolTag label="Proxy" value={report.server.network.intel.isProxy} />
-                  <BoolTag label="Tor" value={report.server.network.intel.isTor} />
-                  <BoolTag label="滥用库" value={report.server.network.intel.isAbuser} />
-                </div>
-              </div>
-
-              {/* Card 2: DNS Leak Detection */}
-              <div className="min-w-0 overflow-hidden rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-5 transition hover:border-[#D97757]/35">
-                <div className="mb-4 flex items-center justify-between gap-2">
-                  <div className="flex min-w-0 items-center gap-2 text-sm font-semibold text-[var(--text-primary)]">
-                    <Server className="h-4 w-4 shrink-0 text-violet-500" />
-                    <span className="truncate">DNS 泄露检测</span>
-                  </div>
-                  <span
-                    className={`shrink-0 rounded px-2 py-0.5 font-mono text-[10px] font-medium ${
-                      report.dnsLeak.status === 'leaked'
-                        ? 'bg-rose-500/15 text-rose-500'
-                        : report.dnsLeak.status === 'safe'
-                          ? 'bg-emerald-500/15 text-emerald-500'
-                          : 'bg-[var(--bg-inner)] text-[var(--text-muted)]'
-                    }`}
-                  >
-                    {report.dnsLeak.status === 'leaked'
-                      ? '存在泄露'
-                      : report.dnsLeak.status === 'safe'
-                        ? '正常'
-                        : '未知'}
-                  </span>
-                </div>
-
-                <dl className="space-y-2.5 text-xs">
-                  <div className="flex items-center justify-between gap-2">
-                    <dt className="shrink-0 text-[var(--text-muted)]">DNS 出口</dt>
-                    <dd
-                      onClick={() => setHideIp((v) => !v)}
-                      className="min-w-0 cursor-pointer truncate font-mono text-[var(--text-primary)]"
-                    >
-                      {maskIp(report.dnsLeak.dnsIp, hideIp)}
-                    </dd>
-                  </div>
-                  <div className="flex items-center justify-between gap-2">
-                    <dt className="shrink-0 text-[var(--text-muted)]">归属地</dt>
-                    <dd
-                      className={`min-w-0 truncate text-right font-mono ${
-                        report.dnsLeak.status === 'leaked' ? 'text-rose-500' : 'text-[var(--text-primary)]'
-                      }`}
-                    >
-                      {report.dnsLeak.dnsGeo || '-'}
-                    </dd>
-                  </div>
-                  <div className="flex items-center justify-between gap-2">
-                    <dt className="shrink-0 text-[var(--text-muted)]">EDNS 网段</dt>
-                    <dd className="min-w-0 truncate font-mono text-[var(--text-secondary)]">
-                      {maskIp(report.dnsLeak.ednsIp, hideIp)}
-                    </dd>
-                  </div>
-                </dl>
-              </div>
-
-              {/* Card 3: WebRTC UDP Leak + Geo */}
-              <div className="min-w-0 overflow-hidden rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-5 transition hover:border-[#D97757]/35">
-                <div className="mb-4 flex items-center justify-between gap-2">
-                  <div className="flex min-w-0 items-center gap-2 text-sm font-semibold text-[var(--text-primary)]">
-                    <Network className="h-4 w-4 shrink-0 text-emerald-500" />
-                    <span className="truncate">WebRTC UDP</span>
-                  </div>
-                  <span
-                    className={`shrink-0 rounded px-2 py-0.5 font-mono text-[10px] font-medium ${
-                      report.webrtc.status === 'leaked'
-                        ? 'bg-rose-500/15 text-rose-500'
-                        : 'bg-emerald-500/15 text-emerald-500'
-                    }`}
-                  >
-                    {report.webrtc.status === 'leaked'
-                      ? '异常泄露'
-                      : report.webrtc.status === 'matched'
-                        ? '与代理一致'
-                        : '已屏蔽'}
-                  </span>
-                </div>
-
-                <dl className="space-y-2.5 text-xs">
-                  <div className="flex items-center justify-between gap-2">
-                    <dt className="shrink-0 text-[var(--text-muted)]">UDP 出口</dt>
-                    <dd
-                      onClick={() => setHideIp((v) => !v)}
-                      className={`min-w-0 cursor-pointer truncate text-right font-mono ${
-                        report.webrtc.status === 'leaked' ? 'text-rose-500' : 'text-[var(--text-primary)]'
-                      }`}
-                    >
-                      {report.webrtc.publicIps.length
-                        ? report.webrtc.publicIps.map((i) => maskIp(i, hideIp)).join(', ')
-                        : '无公网暴露'}
-                    </dd>
-                  </div>
-                  <div className="flex items-center justify-between gap-2">
-                    <dt className="shrink-0 text-[var(--text-muted)]">归属地</dt>
-                    <dd className="min-w-0 truncate text-right text-[var(--text-secondary)]">
-                      {report.webrtc.ipDetails.length > 0
-                        ? report.webrtc.ipDetails
-                            .map((d) => `${d.country || '-'}${d.city ? `·${d.city}` : ''}`)
-                            .join(', ')
-                        : '-'}
-                    </dd>
-                  </div>
-                  <div className="flex items-center justify-between gap-2">
-                    <dt className="shrink-0 text-[var(--text-muted)]">运营商</dt>
-                    <dd className="min-w-0 truncate text-right font-mono text-[var(--text-secondary)]">
-                      {report.webrtc.ipDetails.length > 0
-                        ? report.webrtc.ipDetails.map((d) => d.isp || '-').join(', ')
-                        : '-'}
-                    </dd>
-                  </div>
-                </dl>
-              </div>
-
-              {/* Card 4: Claude Reachability & Browser Env */}
-              <div className="min-w-0 overflow-hidden rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-5 transition hover:border-[#D97757]/35">
-                <div className="mb-4 flex items-center justify-between gap-2">
-                  <div className="flex min-w-0 items-center gap-2 text-sm font-semibold text-[var(--text-primary)]">
-                    {report.browser.isMobile ? (
-                      <Smartphone className="h-4 w-4 shrink-0 text-[#D97757]" />
-                    ) : (
-                      <Laptop className="h-4 w-4 shrink-0 text-[#D97757]" />
-                    )}
-                    <span className="truncate">生态可达与指纹</span>
-                  </div>
-                  <Wifi className="h-4 w-4 shrink-0 text-[var(--text-muted)]" />
-                </div>
-
-                <div className="space-y-2 text-xs">
-                  {report.splitTunnel.endpoints.map((ep) => (
-                    <div key={ep.name} className="flex items-center justify-between gap-2">
-                      <span className="min-w-0 truncate text-[var(--text-secondary)]">{ep.name}</span>
+                  {/* Quadrant 2: DNS Leak Detection */}
+                  <div className="min-w-0 p-5 md:border-b md:border-[var(--border-soft)]">
+                    <div className="mb-3.5 flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 text-sm font-semibold text-[var(--text-primary)]">
+                        <Server className="h-4 w-4 text-[#D97757]" />
+                        <span>DNS 泄露检测</span>
+                      </div>
                       <span
-                        className={`shrink-0 font-mono ${
-                          !ep.reachable
-                            ? 'text-[var(--text-muted)]'
-                            : (ep.rttMs ?? 999) < 120
-                              ? 'text-emerald-500'
-                              : 'text-amber-500'
+                        className={`rounded-md px-2 py-0.5 font-mono text-[10px] font-medium ${
+                          report.dnsLeak.status === 'leaked'
+                            ? 'bg-rose-500/12 text-rose-500'
+                            : report.dnsLeak.status === 'safe'
+                              ? 'bg-emerald-500/12 text-emerald-500'
+                              : 'bg-[var(--bg-inner)] text-[var(--text-muted)]'
                         }`}
                       >
-                        {ep.reachable && ep.rttMs !== null ? `${ep.rttMs} ms` : '不可达'}
+                        {report.dnsLeak.status === 'leaked'
+                          ? '存在泄露'
+                          : report.dnsLeak.status === 'safe'
+                            ? '正常'
+                            : '未知'}
                       </span>
                     </div>
-                  ))}
-                  <div className="flex items-center justify-between gap-2 border-t border-[var(--border-subtle)] pt-2">
-                    <span className="shrink-0 text-[var(--text-muted)]">时区 / 语言</span>
-                    <span
-                      className={`min-w-0 truncate text-right font-mono ${
-                        report.server.geo.timezone &&
-                        report.browser.timezone !== report.server.geo.timezone
-                          ? 'text-rose-500'
-                          : 'text-emerald-500'
-                      }`}
-                    >
-                      {report.browser.timezone} ({report.browser.language})
-                    </span>
+
+                    <dl className="space-y-2 text-xs">
+                      <div className="flex items-center justify-between gap-2">
+                        <dt className="text-[var(--text-muted)]">DNS 出口</dt>
+                        <dd
+                          onClick={() => setHideIp((v) => !v)}
+                          className="cursor-pointer truncate font-mono text-[var(--text-primary)]"
+                        >
+                          {maskIp(report.dnsLeak.dnsIp, hideIp)}
+                        </dd>
+                      </div>
+                      <div className="flex items-center justify-between gap-2">
+                        <dt className="text-[var(--text-muted)]">归属地</dt>
+                        <dd
+                          className={`truncate font-mono ${
+                            report.dnsLeak.status === 'leaked'
+                              ? 'text-rose-500'
+                              : 'text-[var(--text-primary)]'
+                          }`}
+                        >
+                          {report.dnsLeak.dnsGeo || '-'}
+                        </dd>
+                      </div>
+                      <div className="flex items-center justify-between gap-2">
+                        <dt className="text-[var(--text-muted)]">EDNS 网段</dt>
+                        <dd className="truncate font-mono text-[var(--text-secondary)]">
+                          {maskIp(report.dnsLeak.ednsIp, hideIp)}
+                        </dd>
+                      </div>
+                    </dl>
                   </div>
-                </div>
-              </div>
-            </motion.section>
 
-            {/* Anthropic Multi-Endpoint Reachability & WAF Strategy */}
-            <motion.section variants={CASCADE_ITEM}>
-              <AnthropicEndpointsSection
-                endpoints={report.anthropicEndpoints}
-                isProxyOrDatacenter={Boolean(
-                  report.server.network.intel.isDatacenter ||
-                    report.server.network.intel.isProxy ||
-                    report.server.network.intel.isVpn ||
-                    report.server.network.heuristicType === 'datacenter'
-                )}
-              />
-            </motion.section>
-
-            {/* Claude Code CLI Anti-Risk Environment Recommendations */}
-            <motion.section variants={CASCADE_ITEM}>
-              <ClaudeCliGuardSection items={report.assessment.cliRecommendations} />
-            </motion.section>
-
-            {/* Audit Findings & Actionable Remediation */}
-            <motion.section
-              variants={CASCADE_ITEM}
-              className="grid grid-cols-1 gap-4 lg:grid-cols-3"
-            >
-              <div className="min-w-0 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-5 lg:col-span-2">
-                <h2 className="mb-4 font-mono text-sm font-semibold text-[var(--text-primary)]">
-                  风控审计明细
-                </h2>
-                <div className="space-y-2.5">
-                  {report.assessment.findings.map((item) => {
-                    const cfg = SEVERITY_CONFIG[item.severity];
-                    const Icon = cfg.icon;
-                    return (
-                      <div
-                        key={item.id}
-                        className={`min-w-0 overflow-hidden rounded-xl border p-3.5 ${cfg.bg}`}
+                  {/* Quadrant 3: WebRTC UDP */}
+                  <div className="min-w-0 p-5 md:border-r md:border-[var(--border-soft)]">
+                    <div className="mb-3.5 flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 text-sm font-semibold text-[var(--text-primary)]">
+                        <Network className="h-4 w-4 text-[#D97757]" />
+                        <span>WebRTC UDP</span>
+                      </div>
+                      <span
+                        className={`rounded-md px-2 py-0.5 font-mono text-[10px] font-medium ${
+                          report.webrtc.status === 'leaked'
+                            ? 'bg-rose-500/12 text-rose-500'
+                            : 'bg-emerald-500/12 text-emerald-500'
+                        }`}
                       >
-                        <div className="flex flex-wrap items-center justify-between gap-2">
-                          <div className="flex min-w-0 items-center gap-2">
-                            <Icon className={`h-4 w-4 shrink-0 ${cfg.color}`} />
-                            <span className="text-sm font-medium text-[var(--text-primary)]">
-                              {item.title}
-                            </span>
-                          </div>
-                          <span className={`shrink-0 font-mono text-xs font-semibold ${cfg.color}`}>
-                            {item.impact}
+                        {report.webrtc.status === 'leaked'
+                          ? '异常泄露'
+                          : report.webrtc.status === 'matched'
+                            ? '与代理一致'
+                            : '已屏蔽'}
+                      </span>
+                    </div>
+
+                    <dl className="space-y-2 text-xs">
+                      <div className="flex items-center justify-between gap-2">
+                        <dt className="text-[var(--text-muted)]">UDP 出口</dt>
+                        <dd
+                          onClick={() => setHideIp((v) => !v)}
+                          className={`cursor-pointer truncate font-mono ${
+                            report.webrtc.status === 'leaked'
+                              ? 'text-rose-500'
+                              : 'text-[var(--text-primary)]'
+                          }`}
+                        >
+                          {report.webrtc.publicIps.length
+                            ? report.webrtc.publicIps.map((i) => maskIp(i, hideIp)).join(', ')
+                            : '无公网暴露'}
+                        </dd>
+                      </div>
+                      <div className="flex items-center justify-between gap-2">
+                        <dt className="text-[var(--text-muted)]">归属地</dt>
+                        <dd className="truncate text-[var(--text-secondary)]">
+                          {report.webrtc.ipDetails.length > 0
+                            ? report.webrtc.ipDetails
+                                .map((d) => `${d.country || '-'}${d.city ? `·${d.city}` : ''}`)
+                                .join(', ')
+                            : '-'}
+                        </dd>
+                      </div>
+                      <div className="flex items-center justify-between gap-2">
+                        <dt className="text-[var(--text-muted)]">运营商</dt>
+                        <dd className="truncate font-mono text-[var(--text-secondary)]">
+                          {report.webrtc.ipDetails.length > 0
+                            ? report.webrtc.ipDetails.map((d) => d.isp || '-').join(', ')
+                            : '-'}
+                        </dd>
+                      </div>
+                    </dl>
+                  </div>
+
+                  {/* Quadrant 4: Reachability & Fingerprint */}
+                  <div className="min-w-0 p-5">
+                    <div className="mb-3.5 flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 text-sm font-semibold text-[var(--text-primary)]">
+                        {report.browser.isMobile ? (
+                          <Smartphone className="h-4 w-4 text-[#D97757]" />
+                        ) : (
+                          <Laptop className="h-4 w-4 text-[#D97757]" />
+                        )}
+                        <span>生态可达与指纹</span>
+                      </div>
+                      <span className="font-mono text-[10px] text-[var(--text-muted)]">
+                        RTT / Locale
+                      </span>
+                    </div>
+
+                    <div className="space-y-2 text-xs">
+                      {report.splitTunnel.endpoints.map((ep) => (
+                        <div key={ep.name} className="flex items-center justify-between gap-2">
+                          <span className="truncate text-[var(--text-secondary)]">{ep.name}</span>
+                          <span
+                            className={`shrink-0 font-mono ${
+                              !ep.reachable
+                                ? 'text-[var(--text-muted)]'
+                                : (ep.rttMs ?? 999) < 120
+                                  ? 'text-emerald-500'
+                                  : 'text-amber-500'
+                            }`}
+                          >
+                            {ep.reachable && ep.rttMs !== null ? `${ep.rttMs} ms` : '不可达'}
                           </span>
                         </div>
-                        <p className="mt-1.5 break-all pl-6 text-xs leading-relaxed text-[var(--text-secondary)] sm:break-words">
-                          {item.detail}
-                        </p>
-                        {item.remediation && (
-                          <p className="mt-1.5 pl-6 text-xs text-[var(--text-primary)]">
-                            <span className="font-semibold text-amber-500">建议：</span>
-                            {item.remediation}
-                          </p>
-                        )}
+                      ))}
+                      <div className="flex items-center justify-between gap-2 border-t border-[var(--border-soft)] pt-2">
+                        <span className="text-[var(--text-muted)]">时区 / 语言</span>
+                        <span
+                          className={`truncate font-mono ${
+                            report.server.geo.timezone &&
+                            report.browser.timezone !== report.server.geo.timezone
+                              ? 'text-rose-500'
+                              : 'text-emerald-500'
+                          }`}
+                        >
+                          {report.browser.timezone} ({report.browser.language})
+                        </span>
                       </div>
-                    );
-                  })}
-                </div>
-              </div>
+                    </div>
+                  </div>
+                </motion.section>
 
-              <div className="min-w-0 rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-5">
-                <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-                  <h2 className="font-mono text-sm font-semibold text-[var(--text-primary)]">
-                    修复与防封建议
-                  </h2>
-                  <button
-                    type="button"
-                    onClick={handleCopyAgentPrompt}
-                    className="inline-flex items-center gap-1.5 rounded-full border border-[#D97757]/35 bg-[#D97757]/10 px-2.5 py-1 font-mono text-[11px] font-medium text-[#D97757] transition hover:bg-[#D97757]/20"
-                  >
-                    {promptCopied ? (
-                      <>
-                        <Check className="h-3 w-3 text-emerald-500" />
-                        <span className="text-emerald-500">已复制</span>
-                      </>
-                    ) : (
-                      <>
-                        <Copy className="h-3 w-3" />
-                        <span>Copy Agent Prompt</span>
-                      </>
+                {/* Anthropic Multi-Endpoint Reachability & WAF Strategy */}
+                <motion.section variants={CASCADE_ITEM}>
+                  <AnthropicEndpointsSection
+                    endpoints={report.anthropicEndpoints}
+                    isProxyOrDatacenter={Boolean(
+                      report.server.network.intel.isDatacenter ||
+                        report.server.network.intel.isProxy ||
+                        report.server.network.intel.isVpn ||
+                        report.server.network.heuristicType === 'datacenter'
                     )}
-                  </button>
-                </div>
+                  />
+                </motion.section>
 
-                <div className="mb-3 rounded-xl border border-[var(--border-soft)] bg-[var(--bg-inner)] px-3 py-2 text-[11px] leading-relaxed text-[var(--text-muted)]">
-                  可点击右上角 <strong className="text-[var(--text-secondary)]">Copy Agent Prompt</strong>，直接粘贴给 Codex、Claude Code 或支持 Computer Use 的桌面端（如 CC Haha），由 Agent 协同修改浏览器语言与系统配置。
-                </div>
+                {/* Claude Code CLI Anti-Risk Environment Recommendations */}
+                <motion.section variants={CASCADE_ITEM}>
+                  <ClaudeCliGuardSection items={report.assessment.cliRecommendations} />
+                </motion.section>
 
-                <ol className="space-y-3 text-xs leading-relaxed text-[var(--text-secondary)]">
-                  {report.assessment.recommendations.map((rec, idx) => (
-                    <li
-                      key={idx}
-                      className="flex gap-2.5 rounded-xl border border-[var(--border-soft)] bg-[var(--bg-inner)] p-3"
-                    >
-                      <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#D97757]/20 font-mono text-[11px] font-bold text-[#D97757]">
-                        {idx + 1}
-                      </span>
-                      <span className="min-w-0 break-words">{rec}</span>
-                    </li>
-                  ))}
-                </ol>
-              </div>
-            </motion.section>
-          </motion.div>
-        )}
+                {/* Audit Findings & Actionable Remediation */}
+                <motion.section
+                  variants={CASCADE_ITEM}
+                  className="grid grid-cols-1 gap-5 lg:grid-cols-5"
+                >
+                  <div className="surface-card min-w-0 overflow-hidden rounded-2xl lg:col-span-3">
+                    <div className="border-b border-[var(--border-subtle)] px-5 py-3.5">
+                      <h2 className="text-sm font-semibold tracking-tight text-[var(--text-primary)]">
+                        风控审计明细
+                      </h2>
+                    </div>
+
+                    <div className="divide-y divide-[var(--border-soft)]">
+                      {report.assessment.findings.map((item) => {
+                        const cfg = SEVERITY_CONFIG[item.severity];
+                        const Icon = cfg.icon;
+                        return (
+                          <div key={item.id} className="relative px-5 py-3.5">
+                            <div
+                              className={`absolute inset-y-3 left-0 w-[2px] rounded-r ${cfg.bar}`}
+                            />
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                              <div className="flex min-w-0 items-center gap-2">
+                                <Icon className={`h-4 w-4 shrink-0 ${cfg.color}`} />
+                                <span className="text-sm font-medium text-[var(--text-primary)]">
+                                  {item.title}
+                                </span>
+                              </div>
+                              <span className={`shrink-0 font-mono text-xs font-semibold ${cfg.color}`}>
+                                {item.impact}
+                              </span>
+                            </div>
+                            <p className="mt-1 break-all pl-6 text-xs leading-relaxed text-[var(--text-secondary)] sm:break-words">
+                              {item.detail}
+                            </p>
+                            {item.remediation && (
+                              <p className="mt-1.5 pl-6 text-xs leading-relaxed text-[var(--text-primary)]">
+                                <span className="font-semibold text-[#D97757]">建议：</span>
+                                {item.remediation}
+                              </p>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="surface-card min-w-0 overflow-hidden rounded-2xl lg:col-span-2">
+                    <div className="border-b border-[var(--border-subtle)] px-5 py-3.5">
+                      <h2 className="text-sm font-semibold tracking-tight text-[var(--text-primary)]">
+                        修复与防封建议
+                      </h2>
+                    </div>
+
+                    <ol className="divide-y divide-[var(--border-soft)] text-xs leading-relaxed text-[var(--text-secondary)]">
+                      {report.assessment.recommendations.map((rec, idx) => (
+                        <li key={idx} className="flex gap-3 px-5 py-3.5">
+                          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-[#D97757]/12 font-mono text-[11px] font-bold text-[#D97757]">
+                            {idx + 1}
+                          </span>
+                          <span className="min-w-0 break-words">{rec}</span>
+                        </li>
+                      ))}
+                    </ol>
+                  </div>
+                </motion.section>
+              </motion.div>
+            )}
           </main>
 
           <EcosystemSidebar

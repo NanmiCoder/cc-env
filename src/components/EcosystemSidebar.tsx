@@ -5,7 +5,7 @@ interface EcosystemSidebarProps {
   isRestrictedOrHighRisk?: boolean;
 }
 
-function ModelDialSymbol({ className = 'h-5 w-5' }: { className?: string }) {
+function ModelDialSymbol({ className = 'h-4 w-6' }: { className?: string }) {
   return (
     <svg
       viewBox="0 0 236 144"
@@ -43,18 +43,18 @@ export default function EcosystemSidebar({ isRestrictedOrHighRisk }: EcosystemSi
 
   return (
     <aside className="space-y-4 xl:sticky xl:top-5">
-      {/* Ecosystem Projects */}
-      <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] p-4 backdrop-blur-md">
-        <div className="mb-3.5 flex items-center justify-between">
-          <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--text-muted)]">
+      {/* Unified Ecosystem Panel */}
+      <div className="surface-card overflow-hidden rounded-2xl">
+        <div className="flex items-center justify-between border-b border-[var(--border-subtle)] px-4 py-3">
+          <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--text-muted)]">
             Ecosystem
           </span>
-          <span className="font-mono text-[10px] text-[var(--text-muted)]">作者开源与工具矩阵</span>
+          <span className="text-[11px] text-[var(--text-muted)]">作者开源与工具矩阵</span>
         </div>
 
-        <div className="space-y-2.5">
+        <div className="divide-y divide-[var(--border-soft)]">
           {/* 1. ModelDial */}
-          <div className="rounded-xl border border-[var(--border-soft)] bg-[var(--bg-inner)] p-3.5 transition hover:border-[#254BB5]/40">
+          <div className="p-4">
             <a
               href="https://modeldial.com"
               target="_blank"
@@ -62,15 +62,15 @@ export default function EcosystemSidebar({ isRestrictedOrHighRisk }: EcosystemSi
               className="group flex items-center justify-between gap-2.5"
             >
               <div className="flex min-w-0 items-center gap-2.5">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-strong)] text-[var(--text-primary)] shadow-sm">
-                  <ModelDialSymbol className="h-4 w-6" />
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-inner)] text-[var(--text-primary)]">
+                  <ModelDialSymbol className="h-3.5 w-5" />
                 </div>
                 <div className="min-w-0">
                   <div className="flex items-center gap-1.5">
                     <span className="truncate text-sm font-semibold text-[var(--text-primary)]">
                       ModelDial
                     </span>
-                    <span className="h-1.5 w-1.5 rounded-full bg-[#254BB5]" />
+                    <span className="h-1.5 w-1.5 rounded-full bg-[#D97757]" />
                   </div>
                   <div className="truncate font-mono text-[10px] text-[var(--text-muted)]">
                     modeldial.com
@@ -89,7 +89,7 @@ export default function EcosystemSidebar({ isRestrictedOrHighRisk }: EcosystemSi
                 href="https://modeldial.com/#radar"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 rounded-md border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-2 py-1 font-mono text-[10px] text-[var(--text-secondary)] transition hover:border-[#254BB5]/45 hover:text-[var(--text-primary)]"
+                className="inline-flex items-center gap-1 rounded-md border border-[var(--border-subtle)] bg-[var(--bg-inner)] px-2 py-1 font-mono text-[10px] text-[var(--text-secondary)] transition hover:border-[#D97757]/45 hover:text-[var(--text-primary)]"
               >
                 编程能力榜
                 <ArrowUpRight className="h-2.5 w-2.5" />
@@ -98,7 +98,7 @@ export default function EcosystemSidebar({ isRestrictedOrHighRisk }: EcosystemSi
                 href="https://modeldial.com/#writing"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 rounded-md border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-2 py-1 font-mono text-[10px] text-[var(--text-secondary)] transition hover:border-[#254BB5]/45 hover:text-[var(--text-primary)]"
+                className="inline-flex items-center gap-1 rounded-md border border-[var(--border-subtle)] bg-[var(--bg-inner)] px-2 py-1 font-mono text-[10px] text-[var(--text-secondary)] transition hover:border-[#D97757]/45 hover:text-[var(--text-primary)]"
               >
                 文本能力榜
                 <ArrowUpRight className="h-2.5 w-2.5" />
@@ -109,8 +109,8 @@ export default function EcosystemSidebar({ isRestrictedOrHighRisk }: EcosystemSi
                 rel="noopener noreferrer"
                 className={`inline-flex items-center gap-1 rounded-md border px-2 py-1 font-mono text-[10px] transition ${
                   isRestrictedOrHighRisk
-                    ? 'border-amber-500/40 bg-amber-500/10 text-amber-500 hover:border-amber-500/60'
-                    : 'border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:border-[#254BB5]/45 hover:text-[var(--text-primary)]'
+                    ? 'border-amber-500/35 bg-amber-500/10 text-amber-500 hover:border-amber-500/60'
+                    : 'border-[var(--border-subtle)] bg-[var(--bg-inner)] text-[var(--text-secondary)] hover:border-[#D97757]/45 hover:text-[var(--text-primary)]'
                 }`}
               >
                 模型掺假指纹验证
@@ -124,12 +124,12 @@ export default function EcosystemSidebar({ isRestrictedOrHighRisk }: EcosystemSi
             href="https://github.com/NanmiCoder/cc-haha"
             target="_blank"
             rel="noopener noreferrer"
-            className="group block rounded-xl border border-[var(--border-soft)] bg-[var(--bg-inner)] p-3.5 transition hover:border-[#D97757]/45"
+            className="group block p-4 transition hover:bg-[var(--bg-inner)]/50"
           >
             <div className="flex items-center justify-between gap-2.5">
               <div className="flex min-w-0 items-center gap-2.5">
-                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-strong)] text-[var(--text-primary)] shadow-sm">
-                  <GitHubSymbol className="h-4.5 w-4.5" />
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-inner)] text-[var(--text-primary)]">
+                  <GitHubSymbol className="h-4 w-4" />
                 </div>
                 <div className="min-w-0">
                   <div className="flex items-center gap-1.5">
@@ -153,13 +153,13 @@ export default function EcosystemSidebar({ isRestrictedOrHighRisk }: EcosystemSi
             </p>
 
             <div className="mt-2.5 flex flex-wrap gap-1.5">
-              <span className="rounded-md border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-2 py-0.5 font-mono text-[10px] text-[var(--text-secondary)]">
+              <span className="rounded-md border border-[var(--border-subtle)] bg-[var(--bg-inner)] px-2 py-0.5 font-mono text-[10px] text-[var(--text-secondary)]">
                 Codex 级 Computer Use
               </span>
-              <span className="rounded-md border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-2 py-0.5 font-mono text-[10px] text-[var(--text-secondary)]">
+              <span className="rounded-md border border-[var(--border-subtle)] bg-[var(--bg-inner)] px-2 py-0.5 font-mono text-[10px] text-[var(--text-secondary)]">
                 多模型切换
               </span>
-              <span className="rounded-md border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-2 py-0.5 font-mono text-[10px] text-[var(--text-secondary)]">
+              <span className="rounded-md border border-[var(--border-subtle)] bg-[var(--bg-inner)] px-2 py-0.5 font-mono text-[10px] text-[var(--text-secondary)]">
                 手机 App / H5 远程
               </span>
             </div>
@@ -167,19 +167,19 @@ export default function EcosystemSidebar({ isRestrictedOrHighRisk }: EcosystemSi
         </div>
       </div>
 
-      {/* Minimalist Sponsors Footer Card */}
-      <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-4 py-3.5 backdrop-blur-md">
+      {/* Minimalist Sponsors Footer */}
+      <div className="surface-card rounded-2xl p-4">
         <div className="flex items-center justify-between">
-          <span className="font-mono text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--text-muted)]">
+          <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--text-muted)]">
             Sponsors
           </span>
-          <span className="font-mono text-[10px] text-[var(--text-muted)]">合作与支持</span>
+          <span className="text-[11px] text-[var(--text-muted)]">合作与支持</span>
         </div>
-        <p className="mt-1.5 text-[11px] leading-relaxed text-[var(--text-secondary)]">
+        <p className="mt-1.5 text-xs leading-relaxed text-[var(--text-secondary)]">
           支持独立开源项目与免费检测站长期稳定运行，欢迎优质 AI / 云基础设施服务商联系赞助。
         </p>
 
-        <div className="mt-2.5 flex items-center justify-between gap-2 rounded-lg border border-[var(--border-soft)] bg-[var(--bg-inner)] px-2.5 py-1.5">
+        <div className="mt-3 flex items-center justify-between gap-2 rounded-lg border border-[var(--border-soft)] bg-[var(--bg-inner)] px-2.5 py-1.5">
           <a
             href="mailto:relakkes@gmail.com"
             className="flex min-w-0 items-center gap-1.5 font-mono text-[11px] text-[var(--text-primary)] transition hover:text-[#D97757]"
@@ -192,7 +192,7 @@ export default function EcosystemSidebar({ isRestrictedOrHighRisk }: EcosystemSi
             onClick={handleCopyEmail}
             title="复制邮箱"
             aria-label="复制联系邮箱"
-            className="shrink-0 rounded p-1 text-[var(--text-muted)] transition hover:bg-[var(--bg-surface)] hover:text-[var(--text-primary)]"
+            className="shrink-0 rounded p-1 text-[var(--text-muted)] transition hover:bg-[var(--bg-surface)] hover:text-[var(--text-primary)] active:scale-[0.96]"
           >
             {copiedMail ? (
               <Check className="h-3 w-3 text-emerald-500" />
