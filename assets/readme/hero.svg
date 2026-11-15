@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="340" viewBox="0 0 1200 340" role="img" aria-labelledby="hero-title hero-desc">
+  <title id="hero-title">CC Env · Anthropic &amp; Claude Code Environment Telemetry</title>
+  <desc id="hero-desc">Monochrome precision instrument header showing CC Env's 100-point risk scoring breakdown across Region Policy, IP Purity, Leak Check, Env Alignment, and Split-Tunnel Routing.</desc>
+
+  <defs>
+    <radialGradient id="keylight" cx="50%" cy="0%" r="85%">
+      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.07"/>
+      <stop offset="100%" stop-color="#0b0b0d" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="crosshair" width="48" height="48" patternUnits="userSpaceOnUse">
+      <path d="M24 20v8M20 24h8" stroke="#ffffff" stroke-opacity="0.08" stroke-width="1"/>
+    </pattern>
+  </defs>
+
+  <rect width="1200" height="340" rx="22" fill="#0B0B0D"/>
+  <rect width="1200" height="340" rx="22" fill="url(#crosshair)"/>
+  <rect width="1200" height="340" rx="22" fill="url(#keylight)"/>
+  <rect x="0.5" y="0.5" width="1199" height="339" rx="21.5" fill="none" stroke="#ffffff" stroke-opacity="0.1"/>
+
+  <!-- Left: Identity & Value -->
+  <g transform="translate(56 48)">
+    <!-- Eyebrow -->
+    <rect x="0" y="0" width="236" height="26" rx="13" fill="#141417" stroke="#ffffff" stroke-opacity="0.12"/>
+    <circle cx="15" cy="13" r="4" fill="#10B981"/>
+    <text x="27" y="17" fill="#A1A1AA" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" letter-spacing="1.2">TELEMETRY INSTRUMENT · CCENV.APP</text>
+
+    <!-- Title -->
+    <text x="0" y="88" fill="#F4F4F6" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif" font-size="56" font-weight="700" letter-spacing="-1.5">CC Env</text>
+
+    <!-- Value proposition -->
+    <text x="0" y="132" fill="#E4E4E7" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif" font-size="20" font-weight="500">Claude Code &amp; Anthropic 环境风控与 IP 纯净度体检台</text>
+    <text x="0" y="164" fill="#A1A1AA" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif" font-size="15">实时评估边缘出口 IP、地区合规、WebRTC/DNS 泄露与双栈分流一致性</text>
+
+    <!-- Metadata pills -->
+    <g transform="translate(0 202)" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12">
+      <rect x="0" y="0" width="136" height="30" rx="8" fill="#141417" stroke="#ffffff" stroke-opacity="0.1"/>
+      <text x="14" y="19" fill="#D4D4D8">Cloudflare Edge</text>
+
+      <rect x="148" y="0" width="128" height="30" rx="8" fill="#141417" stroke="#ffffff" stroke-opacity="0.1"/>
+      <text x="162" y="19" fill="#D4D4D8">7-Probe Client</text>
+
+      <rect x="288" y="0" width="150" height="30" rx="8" fill="#141417" stroke="#ffffff" stroke-opacity="0.1"/>
+      <text x="302" y="19" fill="#D4D4D8">CLI + Agent Fix</text>
+    </g>
+  </g>
+
+  <!-- Right: Real 100-pt Risk Scoring Breakdown -->
+  <g transform="translate(690 44)">
+    <rect x="0" y="0" width="454" height="252" rx="16" fill="#141417" stroke="#ffffff" stroke-opacity="0.1"/>
+    <text x="24" y="34" fill="#71717A" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" letter-spacing="1.2">RISK MODEL · 100 PTS TOTAL</text>
+    <text x="430" y="34" text-anchor="end" fill="#10B981" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" font-weight="600">PASS ≥ 85</text>
+    <line x1="24" y1="48" x2="430" y2="48" stroke="#ffffff" stroke-opacity="0.07"/>
+
+    <!-- Row 1: IP Purity 35 -->
+    <g transform="translate(24 72)">
+      <text x="0" y="0" fill="#F4F4F6" font-family="-apple-system, BlinkMacSystemFont, 'PingFang SC', sans-serif" font-size="13" font-weight="500">IP 纯净度与 ASN</text>
+      <text x="406" y="0" text-anchor="end" fill="#A1A1AA" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12">35 pts</text>
+      <rect x="0" y="10" width="406" height="5" rx="2.5" fill="#232329"/>
+      <rect x="0" y="10" width="340" height="5" rx="2.5" fill="#F4F4F6"/>
+    </g>
+
+    <!-- Row 2: Region Policy 25 -->
+    <g transform="translate(24 108)">
+      <text x="0" y="0" fill="#F4F4F6" font-family="-apple-system, BlinkMacSystemFont, 'PingFang SC', sans-serif" font-size="13" font-weight="500">地区合规策略</text>
+      <text x="406" y="0" text-anchor="end" fill="#A1A1AA" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12">25 pts</text>
+      <rect x="0" y="10" width="406" height="5" rx="2.5" fill="#232329"/>
+      <rect x="0" y="10" width="244" height="5" rx="2.5" fill="#10B981"/>
+    </g>
+
+    <!-- Row 3: Leak Check 15 -->
+    <g transform="translate(24 144)">
+      <text x="0" y="0" fill="#F4F4F6" font-family="-apple-system, BlinkMacSystemFont, 'PingFang SC', sans-serif" font-size="13" font-weight="500">WebRTC / DNS 泄露</text>
+      <text x="406" y="0" text-anchor="end" fill="#A1A1AA" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12">15 pts</text>
+      <rect x="0" y="10" width="406" height="5" rx="2.5" fill="#232329"/>
+      <rect x="0" y="10" width="146" height="5" rx="2.5" fill="#D4D4D8"/>
+    </g>
+
+    <!-- Row 4: Env Alignment 15 -->
+    <g transform="translate(24 180)">
+      <text x="0" y="0" fill="#F4F4F6" font-family="-apple-system, BlinkMacSystemFont, 'PingFang SC', sans-serif" font-size="13" font-weight="500">时区 / 语言指纹一致性</text>
+      <text x="406" y="0" text-anchor="end" fill="#A1A1AA" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12">15 pts</text>
+      <rect x="0" y="10" width="406" height="5" rx="2.5" fill="#232329"/>
+      <rect x="0" y="10" width="146" height="5" rx="2.5" fill="#A1A1AA"/>
+    </g>
+
+    <!-- Row 5: Split-Tunnel 10 -->
+    <g transform="translate(24 216)">
+      <text x="0" y="0" fill="#F4F4F6" font-family="-apple-system, BlinkMacSystemFont, 'PingFang SC', sans-serif" font-size="13" font-weight="500">双栈与分流路径</text>
+      <text x="406" y="0" text-anchor="end" fill="#A1A1AA" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12">10 pts</text>
+      <rect x="0" y="10" width="406" height="5" rx="2.5" fill="#232329"/>
+      <rect x="0" y="10" width="98" height="5" rx="2.5" fill="#71717A"/>
+    </g>
+  </g>
+</svg>
