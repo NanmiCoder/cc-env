@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion, useScroll } from 'framer-motion';
 import {
   AlertTriangle,
   Bot,
@@ -24,11 +24,19 @@ import {
   Sun,
   XCircle,
 } from 'lucide-react';
+import SiteBackdrop, {
+  BackdropSwitcher,
+  isBackdropVariant,
+  type BackdropVariant,
+} from './components/SiteBackdrop';
 import { ClaudeFlowerLogo, ScrambleIn } from './components/BrandAndText';
 import { AnthropicEndpointsSection, ClaudeCliGuardSection } from './components/ClaudeCliAdvisor';
 import EcosystemSidebar from './components/EcosystemSidebar';
+import HeroInstrumentTilt from './components/HeroInstrumentTilt';
+import MagneticButton from './components/MagneticButton';
 import ReportSkeleton from './components/ReportSkeleton';
 import ShareReportModal from './components/ShareReportModal';
+import SpotlightSurface from './components/SpotlightSurface';
 import {
   collectBrowserEnv,
   compareAndSaveIpHistory,
@@ -80,33 +88,33 @@ const GRADE_STYLES: Record<
   }
 > = {
   S: {
-    text: 'text-emerald-500',
-    ring: 'stroke-emerald-500',
-    badge: 'bg-emerald-500/12 text-emerald-500 border-emerald-500/25',
+    text: 'text-[var(--text-primary)]',
+    ring: 'stroke-[var(--text-primary)]',
+    badge: 'border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--text-primary)]',
     dot: 'bg-emerald-500',
   },
   A: {
-    text: 'text-emerald-500',
-    ring: 'stroke-emerald-500',
-    badge: 'bg-emerald-500/12 text-emerald-500 border-emerald-500/25',
+    text: 'text-[var(--text-primary)]',
+    ring: 'stroke-[var(--text-primary)]',
+    badge: 'border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--text-primary)]',
     dot: 'bg-emerald-500',
   },
   B: {
-    text: 'text-amber-500',
-    ring: 'stroke-amber-500',
-    badge: 'bg-amber-500/12 text-amber-500 border-amber-500/25',
+    text: 'text-[var(--text-primary)]',
+    ring: 'stroke-[var(--text-primary)]',
+    badge: 'border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--text-primary)]',
     dot: 'bg-amber-500',
   },
   C: {
-    text: 'text-[#D97757]',
-    ring: 'stroke-[#D97757]',
-    badge: 'bg-[#D97757]/12 text-[#D97757] border-[#D97757]/30',
-    dot: 'bg-[#D97757]',
+    text: 'text-[var(--text-primary)]',
+    ring: 'stroke-[var(--text-secondary)]',
+    badge: 'border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--text-primary)]',
+    dot: 'bg-amber-500',
   },
   F: {
     text: 'text-rose-500',
     ring: 'stroke-rose-500',
-    badge: 'bg-rose-500/12 text-rose-500 border-rose-500/25',
+    badge: 'border-rose-500/25 bg-[var(--bg-surface)] text-rose-500',
     dot: 'bg-rose-500',
   },
 };
@@ -118,12 +126,12 @@ const SEVERITY_CONFIG: Record<
   pass: {
     icon: CheckCircle2,
     color: 'text-emerald-500',
-    bar: 'bg-emerald-500',
+    bar: 'bg-[var(--border-subtle)]',
   },
   info: {
     icon: Info,
-    color: 'text-[var(--text-secondary)]',
-    bar: 'bg-zinc-400',
+    color: 'text-[var(--text-muted)]',
+    bar: 'bg-[var(--border-subtle)]',
   },
   warn: {
     icon: AlertTriangle,
@@ -194,7 +202,11 @@ function ScoreRing({ score, grade }: { score: number; grade: RiskGrade }) {
 
   return (
     <div className="relative flex h-28 w-28 shrink-0 items-center justify-center">
-      <svg className="h-28 w-28 -rotate-90" viewBox="0 0 112 112">
+      <svg
+        className="h-28 w-28 -rotate-90"
+        viewBox="0 0 112 112"
+        style={{ transform: 'translateZ(14px)' }}
+      >
         <circle
           cx="56"
           cy="56"
@@ -240,20 +252,18 @@ function BoolTag({
 }) {
   if (value === null) {
     return (
-      <span className="inline-flex items-center rounded-md border border-[var(--border-soft)] bg-[var(--bg-inner)] px-2 py-0.5 font-mono text-[11px] text-[var(--text-muted)]">
+      <span className="inline-flex items-center gap-1.5 rounded-md border border-[var(--border-soft)] bg-[var(--bg-inner)] px-2 py-0.5 font-mono text-[11px] text-[var(--text-muted)]">
+        <span className="h-1.5 w-1.5 rounded-full bg-[var(--text-muted)]/40" />
         {label}: 未知
       </span>
     );
   }
   const isBad = dangerWhenTrue ? value : !value;
   return (
-    <span
-      className={`inline-flex items-center rounded-md border px-2 py-0.5 font-mono text-[11px] ${
-        isBad
-          ? 'border-rose-500/25 bg-rose-500/10 text-rose-500'
-          : 'border-emerald-500/25 bg-emerald-500/10 text-emerald-500'
-      }`}
-    >
+    <span className="inline-flex items-center gap-1.5 rounded-md border border-[var(--border-soft)] bg-[var(--bg-inner)] px-2 py-0.5 font-mono text-[11px] text-[var(--text-primary)]">
+      <span
+        className={`h-1.5 w-1.5 rounded-full ${isBad ? 'bg-rose-500' : 'bg-emerald-500'}`}
+      />
       {label}: {value ? '是' : '否'}
     </span>
   );
@@ -315,6 +325,34 @@ export default function App() {
       return next;
     });
   };
+
+  const prefersReducedMotion = useReducedMotion();
+  const { scrollYProgress } = useScroll();
+
+  // Backdrop variant preview (?bg=studio|dots|radar|crosshair|beams); switcher shows in dev or when ?bg is present
+  const [bgVariant, setBgVariant] = useState<BackdropVariant>(() => {
+    if (typeof window === 'undefined') return 'dots';
+    const fromUrl = new URLSearchParams(window.location.search).get('bg');
+    if (isBackdropVariant(fromUrl)) return fromUrl;
+    try {
+      const saved = localStorage.getItem('ccenv:bg');
+      if (isBackdropVariant(saved)) return saved;
+    } catch {
+      // ignore
+    }
+    return 'dots';
+  });
+  const showBgSwitcher =
+    import.meta.env.DEV ||
+    (typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('bg'));
+  const changeBgVariant = useCallback((v: BackdropVariant) => {
+    setBgVariant(v);
+    try {
+      localStorage.setItem('ccenv:bg', v);
+    } catch {
+      // ignore
+    }
+  }, []);
 
   const runScan = useCallback(async () => {
     setLoading(true);
@@ -424,20 +462,21 @@ export default function App() {
   const ladderOrder: RiskGrade[] = ['F', 'C', 'B', 'A', 'S'];
 
   return (
-    <div className="relative min-h-[100dvh] overflow-x-hidden bg-[var(--bg-page)] text-[var(--text-primary)]">
-      {/* Subtle Top Ambient Terracotta Glow */}
-      <div className="pointer-events-none fixed inset-x-0 top-0 h-[360px] bg-[radial-gradient(ellipse_at_top,rgba(217,119,87,0.08),transparent_70%)]" />
+    <div className="relative isolate min-h-[100dvh] overflow-x-clip bg-[var(--bg-page)] text-[var(--text-primary)]">
+      {/* L0-L1.5: Precision CAD Blueprint + AI Optical Glass Artwork + Readability Scrim */}
+      <SiteBackdrop variant={bgVariant} />
+      {showBgSwitcher && <BackdropSwitcher value={bgVariant} onChange={changeBgVariant} />}
 
-      {/* Slim Architectural Topbar */}
-      <header className="relative border-b border-[var(--border-subtle)] bg-[var(--bg-page)]/80 backdrop-blur-md">
-        <div className="mx-auto flex h-14 w-full max-w-[1400px] items-center justify-between gap-3 px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2">
-              <ClaudeFlowerLogo className="h-5 w-5 text-[#D97757]" />
-              <span className="font-mono text-sm font-bold tracking-tight text-[var(--text-primary)]">
+      {/* Sticky Glass Header + Scroll Progress Hairline */}
+      <header className="sticky top-0 z-30 border-b border-[var(--border-subtle)] bg-[var(--bg-surface)]/78 backdrop-blur-xl">
+        <div className="mx-auto flex h-14 w-full max-w-[1400px] items-center justify-between gap-2 px-3.5 sm:gap-3 sm:px-6 lg:px-8">
+          <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+            <div className="flex shrink-0 items-center gap-2">
+              <ClaudeFlowerLogo className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
+              <span className="whitespace-nowrap font-mono text-sm font-bold tracking-tight text-[var(--text-primary)]">
                 CC Env
               </span>
-              <span className="inline-flex items-center gap-1 rounded border border-[#D97757]/30 bg-[#D97757]/10 px-1.5 py-0.5 font-mono text-[10px] font-semibold text-[#D97757]">
+              <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded border border-[var(--border-subtle)] bg-[var(--bg-inner)] px-1.5 py-0.5 font-mono text-[10px] font-semibold text-[var(--text-secondary)]">
                 <FlaskConical className="h-2.5 w-2.5" />
                 LABS
               </span>
@@ -445,7 +484,7 @@ export default function App() {
 
             {report && !loading && (
               <div className="hidden items-center gap-2 border-l border-[var(--border-subtle)] pl-3 font-mono text-[11px] text-[var(--text-muted)] sm:flex">
-                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" />
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
                 <span>COLO {report.server.edge.colo}</span>
                 {report.server.edge.clientTcpRtt !== null && (
                   <span>· {report.server.edge.clientTcpRtt} ms</span>
@@ -454,10 +493,10 @@ export default function App() {
             )}
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
             <button
               onClick={toggleTheme}
-              className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--text-secondary)] transition hover:border-[#D97757]/40 hover:text-[var(--text-primary)] active:scale-[0.96]"
+              className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--text-secondary)] transition hover:border-[var(--text-muted)] hover:text-[var(--text-primary)] active:scale-[0.96]"
               title={theme === 'dark' ? '切换为亮色主题' : '切换为暗色主题'}
               aria-label="切换亮色/暗色主题"
             >
@@ -468,8 +507,8 @@ export default function App() {
               onClick={() => setHideIp((v) => !v)}
               className={`inline-flex h-8 items-center gap-1.5 rounded-lg border px-2.5 font-mono text-[11px] transition active:scale-[0.98] ${
                 hideIp
-                  ? 'border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:border-[#D97757]/40'
-                  : 'border-amber-500/35 bg-amber-500/10 text-amber-500'
+                  ? 'border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:border-[var(--text-muted)] hover:text-[var(--text-primary)]'
+                  : 'border-transparent bg-[var(--accent)] text-[var(--accent-fg)]'
               }`}
             >
               {hideIp ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
@@ -479,26 +518,35 @@ export default function App() {
             <button
               onClick={() => setShareOpen(true)}
               disabled={!report || loading}
-              className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-2.5 font-mono text-[11px] text-[var(--text-primary)] transition hover:border-[#D97757]/45 active:scale-[0.98] disabled:opacity-40"
+              className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-2.5 font-mono text-[11px] text-[var(--text-primary)] transition hover:border-[var(--text-muted)] active:scale-[0.98] disabled:opacity-40"
             >
-              <Share2 className="h-3.5 w-3.5 text-[#D97757]" />
+              <Share2 className="h-3.5 w-3.5 text-[var(--text-muted)]" />
               <span className="hidden sm:inline">分享报告</span>
             </button>
 
-            <button
+            <MagneticButton
               onClick={runScan}
               disabled={loading}
-              className="inline-flex h-8 items-center gap-1.5 rounded-lg bg-[var(--cta-bg)] px-3 font-mono text-[11px] font-semibold text-[var(--cta-text)] transition hover:opacity-90 active:scale-[0.98] disabled:opacity-60"
+              className="inline-flex h-8 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg bg-[var(--cta-bg)] px-2.5 font-mono text-[11px] font-semibold text-[var(--cta-text)] transition hover:opacity-90 disabled:opacity-60 sm:px-3"
             >
-              <RefreshCw className={`h-3 w-3 ${loading ? 'animate-spin' : ''}`} />
+              <RefreshCw className={`h-3 w-3 shrink-0 ${loading ? 'animate-spin' : ''}`} />
               <span>{loading ? '扫描中' : '重新检测'}</span>
-            </button>
+            </MagneticButton>
           </div>
         </div>
+
+        {/* Continuous Scroll Depth Hairline */}
+        {!prefersReducedMotion && (
+          <motion.div
+            aria-hidden="true"
+            style={{ scaleX: scrollYProgress, transformOrigin: '0% 50%' }}
+            className="pointer-events-none absolute inset-x-0 -bottom-px h-[1.5px] bg-[var(--text-primary)]/45 will-change-transform"
+          />
+        )}
       </header>
 
       {/* Main Workspace + Right Sticky Ecosystem Sidebar */}
-      <div className="relative mx-auto w-full max-w-[1400px] px-4 py-6 sm:px-6 lg:px-8">
+      <div className="relative z-10 mx-auto w-full max-w-[1400px] px-4 py-6 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_304px] xl:items-start">
           <main className="min-w-0">
             {/* Loading Skeleton */}
@@ -529,16 +577,14 @@ export default function App() {
                 className="space-y-5"
               >
                 {/* Unified Split Hero + Risk Instrument */}
-                <motion.section
-                  variants={CASCADE_ITEM}
-                  className="surface-card overflow-hidden rounded-2xl"
-                >
-                  <div className="grid grid-cols-1 divide-y divide-[var(--border-soft)] lg:grid-cols-[1.2fr_0.85fr] lg:divide-x lg:divide-y-0">
+                <motion.section variants={CASCADE_ITEM}>
+                  <SpotlightSurface>
+                    <div className="grid grid-cols-1 divide-y divide-[var(--border-soft)] lg:grid-cols-[1.2fr_0.85fr] lg:divide-x lg:divide-y-0">
                     {/* Left: Editorial Title + Inline 3-Point Exit Strip */}
                     <div className="flex flex-col justify-between p-5 sm:p-6">
                       <div>
                         <div className="flex flex-wrap items-center justify-between gap-2">
-                          <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-[#D97757]">
+                          <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">
                             Anthropic Environment Telemetry
                           </span>
                           <button
@@ -565,7 +611,7 @@ export default function App() {
                         {introOpen && (
                           <div className="mt-4 grid gap-3 border-t border-[var(--border-soft)] pt-4 text-xs sm:grid-cols-3">
                             <div>
-                              <div className="font-mono text-[11px] font-semibold text-[#D97757]">
+                              <div className="font-mono text-[11px] font-semibold text-[var(--text-primary)]">
                                 01 / 出口与家宽分级
                               </div>
                               <p className="mt-1 leading-relaxed text-[var(--text-muted)]">
@@ -601,11 +647,12 @@ export default function App() {
                         >
                           <div className="flex items-center justify-between gap-1.5">
                             <span className="text-[11px] text-[var(--text-muted)]">国内直连出口</span>
-                            <span
-                              className={`font-mono text-[10px] font-medium ${
-                                report.domesticIp.isChinaDirect ? 'text-amber-500' : 'text-emerald-500'
-                              }`}
-                            >
+                            <span className="inline-flex items-center gap-1 font-mono text-[10px] font-medium text-[var(--text-secondary)]">
+                              <span
+                                className={`h-1.5 w-1.5 rounded-full ${
+                                  report.domesticIp.isChinaDirect ? 'bg-amber-500' : 'bg-emerald-500'
+                                }`}
+                              />
                               {report.domesticIp.isChinaDirect ? '分流直连' : '未检出'}
                             </span>
                           </div>
@@ -624,7 +671,7 @@ export default function App() {
                         >
                           <div className="flex items-center justify-between gap-1.5">
                             <span className="text-[11px] text-[var(--text-muted)]">海外代理出口</span>
-                            <span className="font-mono text-[10px] font-medium text-[#D97757]">
+                            <span className="font-mono text-[10px] font-semibold text-[var(--text-primary)]">
                               {report.server.geo.country}
                             </span>
                           </div>
@@ -639,11 +686,12 @@ export default function App() {
                         <div className="py-2 sm:py-0 sm:pl-4">
                           <div className="flex items-center justify-between gap-1.5">
                             <span className="text-[11px] text-[var(--text-muted)]">出口稳定性</span>
-                            <span
-                              className={`font-mono text-[10px] font-medium ${
-                                report.history.status === 'changed' ? 'text-amber-500' : 'text-emerald-500'
-                              }`}
-                            >
+                            <span className="inline-flex items-center gap-1 font-mono text-[10px] font-medium text-[var(--text-secondary)]">
+                              <span
+                                className={`h-1.5 w-1.5 rounded-full ${
+                                  report.history.status === 'changed' ? 'bg-amber-500' : 'bg-emerald-500'
+                                }`}
+                              />
                               {report.history.status === 'same'
                                 ? '一致'
                                 : report.history.status === 'changed'
@@ -667,16 +715,17 @@ export default function App() {
                       </div>
                     </div>
 
-                    {/* Right: Risk Gauge + Segmented Scale */}
-                    <div className="flex flex-col justify-between gap-5 bg-[var(--bg-inner)]/45 p-5 sm:p-6">
+                    {/* Right: Tactile 3D Instrument Gauge + Segmented Scale */}
+                    <HeroInstrumentTilt className="flex flex-col justify-between gap-5 bg-[var(--bg-inner)]/78 p-5 sm:p-6">
                       <div className="flex items-center gap-5">
                         <ScoreRing score={report.assessment.score} grade={report.assessment.grade} />
 
                         <div className="min-w-0 space-y-2">
                           <div className="flex flex-wrap items-center gap-1.5">
                             <span
-                              className={`inline-flex items-center rounded-md border px-2 py-0.5 font-mono text-xs font-semibold ${gradeStyle.badge}`}
+                              className={`inline-flex items-center gap-1.5 rounded-md border px-2 py-0.5 font-mono text-xs font-semibold ${gradeStyle.badge}`}
                             >
+                              <span className={`h-1.5 w-1.5 rounded-full ${gradeStyle.dot}`} />
                               {report.assessment.gradeLabel}
                             </span>
                             <span className="rounded-md border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-2 py-0.5 font-mono text-[11px] text-[var(--text-secondary)]">
@@ -697,14 +746,13 @@ export default function App() {
                         <div className="grid grid-cols-5 gap-1">
                           {ladderOrder.map((g) => {
                             const active = g === report.assessment.grade;
-                            const st = GRADE_STYLES[g];
                             return (
                               <div
                                 key={g}
-                                className={`flex flex-col items-center rounded-md border py-1.5 text-center transition ${
+                                className={`flex flex-col items-center rounded-lg border py-1.5 text-center transition ${
                                   active
-                                    ? `${st.badge} font-semibold`
-                                    : 'border-[var(--border-soft)] bg-[var(--bg-surface)] text-[var(--text-muted)] opacity-55'
+                                    ? 'border-transparent bg-[var(--accent)] font-semibold text-[var(--accent-fg)]'
+                                    : 'border-[var(--border-soft)] bg-[var(--bg-surface)] text-[var(--text-muted)] opacity-65'
                                 }`}
                               >
                                 <span className="font-mono text-xs font-bold">{g}</span>
@@ -724,34 +772,43 @@ export default function App() {
                           })}
                         </div>
                       </div>
-                    </div>
+                    </HeroInstrumentTilt>
                   </div>
 
                   {/* 5 Category Meters Strip */}
                   <div className="grid grid-cols-2 gap-4 border-t border-[var(--border-subtle)] px-5 py-4 sm:grid-cols-5 sm:px-6">
                     {report.assessment.categories.map((cat) => {
                       const pct = Math.round((cat.score / cat.maxScore) * 100);
-                      const barColor =
+                      const statusDot =
                         cat.status === 'danger'
                           ? 'bg-rose-500'
                           : cat.status === 'warn'
                             ? 'bg-amber-500'
                             : 'bg-emerald-500';
+                      const barFill =
+                        cat.status === 'danger'
+                          ? 'bg-rose-500/80'
+                          : cat.status === 'warn'
+                            ? 'bg-[var(--text-secondary)]'
+                            : 'bg-[var(--text-primary)]';
 
                       return (
                         <div key={cat.key} className="min-w-0">
                           <div className="flex items-center justify-between text-[11px]">
-                            <span className="truncate text-[var(--text-muted)]">{cat.label}</span>
+                            <span className="flex min-w-0 items-center gap-1.5 truncate text-[var(--text-muted)]">
+                              <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${statusDot}`} />
+                              <span className="truncate">{cat.label}</span>
+                            </span>
                             <span className="shrink-0 font-mono font-semibold text-[var(--text-primary)]">
                               {cat.score}/{cat.maxScore}
                             </span>
                           </div>
-                          <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-[var(--border-subtle)]">
+                          <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-[var(--ring-track)]">
                             <motion.div
                               initial={{ width: 0 }}
                               animate={{ width: `${pct}%` }}
                               transition={{ type: 'spring', stiffness: 90, damping: 18 }}
-                              className={`h-full rounded-full ${barColor}`}
+                              className={`h-full rounded-full ${barFill}`}
                             />
                           </div>
                         </div>
@@ -760,27 +817,29 @@ export default function App() {
                   </div>
 
                   {/* Inline Agent Auto-Fix Prompt Strip */}
-                  <div className="flex flex-col gap-3 border-t border-[var(--border-soft)] bg-[#D97757]/[0.05] px-5 py-3.5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+                  <div className="flex flex-col gap-3 border-t border-[var(--border-soft)] bg-[var(--bg-inner)]/75 px-5 py-3.5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
                     <div className="flex items-start gap-2.5 sm:items-center">
-                      <Bot className="mt-0.5 h-4 w-4 shrink-0 text-[#D97757] sm:mt-0" />
+                      <Bot className="mt-0.5 h-4 w-4 shrink-0 text-[var(--text-primary)] sm:mt-0" />
                       <p className="text-xs leading-relaxed text-[var(--text-secondary)]">
                         <strong className="font-semibold text-[var(--text-primary)]">
                           复制给 AI Agent 自动优化：
                         </strong>
                         将该诊断指令发给 Claude Code、Codex 或{' '}
-                        <span className="font-mono font-medium text-[#D97757]">CC Haha</span>
+                        <span className="font-mono font-semibold text-[var(--text-primary)]">
+                          CC Haha
+                        </span>
                         ，即可协同调整浏览器语言与系统底层配置。
                       </p>
                     </div>
 
-                    <button
+                    <MagneticButton
                       type="button"
                       onClick={handleCopyAgentPrompt}
-                      className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg bg-[#D97757] px-3.5 py-2 font-mono text-xs font-semibold text-white transition hover:bg-[#c86646] active:scale-[0.98]"
+                      className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg bg-[var(--accent)] px-3.5 py-2 font-mono text-xs font-semibold text-[var(--accent-fg)] transition hover:opacity-90"
                     >
                       {promptCopied ? (
                         <>
-                          <Check className="h-3.5 w-3.5" />
+                          <Check className="h-3.5 w-3.5 text-emerald-500" />
                           <span>已复制，去粘贴给 Agent 吧</span>
                         </>
                       ) : (
@@ -789,20 +848,20 @@ export default function App() {
                           <span>复制 Agent 修复 Prompt</span>
                         </>
                       )}
-                    </button>
+                    </MagneticButton>
                   </div>
+                  </SpotlightSurface>
                 </motion.section>
 
                 {/* Unified 2x2 Core Telemetry Matrix */}
-                <motion.section
-                  variants={CASCADE_ITEM}
-                  className="surface-card grid grid-cols-1 divide-y divide-[var(--border-soft)] overflow-hidden rounded-2xl md:grid-cols-2 md:divide-y-0"
-                >
+                <motion.section variants={CASCADE_ITEM}>
+                  <SpotlightSurface>
+                    <div className="grid grid-cols-1 divide-y divide-[var(--border-soft)] md:grid-cols-2 md:divide-y-0">
                   {/* Quadrant 1: IP & Intelligence */}
                   <div className="min-w-0 p-5 md:border-b md:border-r md:border-[var(--border-soft)]">
                     <div className="mb-3.5 flex items-center justify-between gap-2">
                       <div className="flex items-center gap-2 text-sm font-semibold text-[var(--text-primary)]">
-                        <Globe className="h-4 w-4 text-[#D97757]" />
+                        <Globe className="h-4 w-4 text-[var(--text-muted)]" />
                         <span>IP 属性与安全</span>
                       </div>
                       <span className="font-mono text-[10px] text-[var(--text-muted)]">
@@ -855,18 +914,19 @@ export default function App() {
                   <div className="min-w-0 p-5 md:border-b md:border-[var(--border-soft)]">
                     <div className="mb-3.5 flex items-center justify-between gap-2">
                       <div className="flex items-center gap-2 text-sm font-semibold text-[var(--text-primary)]">
-                        <Server className="h-4 w-4 text-[#D97757]" />
+                        <Server className="h-4 w-4 text-[var(--text-muted)]" />
                         <span>DNS 泄露检测</span>
                       </div>
-                      <span
-                        className={`rounded-md px-2 py-0.5 font-mono text-[10px] font-medium ${
-                          report.dnsLeak.status === 'leaked'
-                            ? 'bg-rose-500/12 text-rose-500'
-                            : report.dnsLeak.status === 'safe'
-                              ? 'bg-emerald-500/12 text-emerald-500'
-                              : 'bg-[var(--bg-inner)] text-[var(--text-muted)]'
-                        }`}
-                      >
+                      <span className="inline-flex items-center gap-1.5 rounded-md border border-[var(--border-soft)] bg-[var(--bg-inner)] px-2 py-0.5 font-mono text-[10px] font-medium text-[var(--text-primary)]">
+                        <span
+                          className={`h-1.5 w-1.5 rounded-full ${
+                            report.dnsLeak.status === 'leaked'
+                              ? 'bg-rose-500'
+                              : report.dnsLeak.status === 'safe'
+                                ? 'bg-emerald-500'
+                                : 'bg-zinc-400'
+                          }`}
+                        />
                         {report.dnsLeak.status === 'leaked'
                           ? '存在泄露'
                           : report.dnsLeak.status === 'safe'
@@ -910,16 +970,15 @@ export default function App() {
                   <div className="min-w-0 p-5 md:border-r md:border-[var(--border-soft)]">
                     <div className="mb-3.5 flex items-center justify-between gap-2">
                       <div className="flex items-center gap-2 text-sm font-semibold text-[var(--text-primary)]">
-                        <Network className="h-4 w-4 text-[#D97757]" />
+                        <Network className="h-4 w-4 text-[var(--text-muted)]" />
                         <span>WebRTC UDP</span>
                       </div>
-                      <span
-                        className={`rounded-md px-2 py-0.5 font-mono text-[10px] font-medium ${
-                          report.webrtc.status === 'leaked'
-                            ? 'bg-rose-500/12 text-rose-500'
-                            : 'bg-emerald-500/12 text-emerald-500'
-                        }`}
-                      >
+                      <span className="inline-flex items-center gap-1.5 rounded-md border border-[var(--border-soft)] bg-[var(--bg-inner)] px-2 py-0.5 font-mono text-[10px] font-medium text-[var(--text-primary)]">
+                        <span
+                          className={`h-1.5 w-1.5 rounded-full ${
+                            report.webrtc.status === 'leaked' ? 'bg-rose-500' : 'bg-emerald-500'
+                          }`}
+                        />
                         {report.webrtc.status === 'leaked'
                           ? '异常泄露'
                           : report.webrtc.status === 'matched'
@@ -970,9 +1029,9 @@ export default function App() {
                     <div className="mb-3.5 flex items-center justify-between gap-2">
                       <div className="flex items-center gap-2 text-sm font-semibold text-[var(--text-primary)]">
                         {report.browser.isMobile ? (
-                          <Smartphone className="h-4 w-4 text-[#D97757]" />
+                          <Smartphone className="h-4 w-4 text-[var(--text-muted)]" />
                         ) : (
-                          <Laptop className="h-4 w-4 text-[#D97757]" />
+                          <Laptop className="h-4 w-4 text-[var(--text-muted)]" />
                         )}
                         <span>生态可达与指纹</span>
                       </div>
@@ -985,15 +1044,16 @@ export default function App() {
                       {report.splitTunnel.endpoints.map((ep) => (
                         <div key={ep.name} className="flex items-center justify-between gap-2">
                           <span className="truncate text-[var(--text-secondary)]">{ep.name}</span>
-                          <span
-                            className={`shrink-0 font-mono ${
-                              !ep.reachable
-                                ? 'text-[var(--text-muted)]'
-                                : (ep.rttMs ?? 999) < 120
-                                  ? 'text-emerald-500'
-                                  : 'text-amber-500'
-                            }`}
-                          >
+                          <span className="inline-flex shrink-0 items-center gap-1.5 font-mono text-[var(--text-primary)]">
+                            <span
+                              className={`h-1.5 w-1.5 rounded-full ${
+                                !ep.reachable
+                                  ? 'bg-zinc-400'
+                                  : (ep.rttMs ?? 999) < 200
+                                    ? 'bg-emerald-500'
+                                    : 'bg-amber-500'
+                              }`}
+                            />
                             {ep.reachable && ep.rttMs !== null ? `${ep.rttMs} ms` : '不可达'}
                           </span>
                         </div>
@@ -1005,7 +1065,7 @@ export default function App() {
                             report.server.geo.timezone &&
                             report.browser.timezone !== report.server.geo.timezone
                               ? 'text-rose-500'
-                              : 'text-emerald-500'
+                              : 'text-[var(--text-primary)]'
                           }`}
                         >
                           {report.browser.timezone} ({report.browser.language})
@@ -1013,6 +1073,8 @@ export default function App() {
                       </div>
                     </div>
                   </div>
+                    </div>
+                  </SpotlightSurface>
                 </motion.section>
 
                 {/* Anthropic Multi-Endpoint Reachability & WAF Strategy */}
@@ -1038,19 +1100,22 @@ export default function App() {
                   variants={CASCADE_ITEM}
                   className="grid grid-cols-1 gap-5 lg:grid-cols-5"
                 >
-                  <div className="surface-card min-w-0 overflow-hidden rounded-2xl lg:col-span-3">
+                  <SpotlightSurface className="min-w-0 lg:col-span-3">
                     <div className="border-b border-[var(--border-subtle)] px-5 py-3.5">
                       <h2 className="text-sm font-semibold tracking-tight text-[var(--text-primary)]">
                         风控审计明细
                       </h2>
                     </div>
 
-                    <div className="divide-y divide-[var(--border-soft)]">
+                    <div className="group/list divide-y divide-[var(--border-soft)]">
                       {report.assessment.findings.map((item) => {
                         const cfg = SEVERITY_CONFIG[item.severity];
                         const Icon = cfg.icon;
                         return (
-                          <div key={item.id} className="relative px-5 py-3.5">
+                          <div
+                            key={item.id}
+                            className="relative px-5 py-3.5 transition-[opacity,background-color] duration-200 group-hover/list:opacity-55 hover:!opacity-100 hover:bg-[var(--bg-inner)]/35"
+                          >
                             <div
                               className={`absolute inset-y-3 left-0 w-[2px] rounded-r ${cfg.bar}`}
                             />
@@ -1061,7 +1126,7 @@ export default function App() {
                                   {item.title}
                                 </span>
                               </div>
-                              <span className={`shrink-0 font-mono text-xs font-semibold ${cfg.color}`}>
+                              <span className="shrink-0 font-mono text-xs font-semibold text-[var(--text-secondary)]">
                                 {item.impact}
                               </span>
                             </div>
@@ -1070,7 +1135,7 @@ export default function App() {
                             </p>
                             {item.remediation && (
                               <p className="mt-1.5 pl-6 text-xs leading-relaxed text-[var(--text-primary)]">
-                                <span className="font-semibold text-[#D97757]">建议：</span>
+                                <span className="font-semibold text-[var(--text-primary)]">建议：</span>
                                 {item.remediation}
                               </p>
                             )}
@@ -1078,26 +1143,29 @@ export default function App() {
                         );
                       })}
                     </div>
-                  </div>
+                  </SpotlightSurface>
 
-                  <div className="surface-card min-w-0 overflow-hidden rounded-2xl lg:col-span-2">
+                  <SpotlightSurface className="min-w-0 lg:col-span-2">
                     <div className="border-b border-[var(--border-subtle)] px-5 py-3.5">
                       <h2 className="text-sm font-semibold tracking-tight text-[var(--text-primary)]">
                         修复与防封建议
                       </h2>
                     </div>
 
-                    <ol className="divide-y divide-[var(--border-soft)] text-xs leading-relaxed text-[var(--text-secondary)]">
+                    <ol className="group/list divide-y divide-[var(--border-soft)] text-xs leading-relaxed text-[var(--text-secondary)]">
                       {report.assessment.recommendations.map((rec, idx) => (
-                        <li key={idx} className="flex gap-3 px-5 py-3.5">
-                          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-[#D97757]/12 font-mono text-[11px] font-bold text-[#D97757]">
+                        <li
+                          key={idx}
+                          className="flex gap-3 px-5 py-3.5 transition-[opacity,background-color] duration-200 group-hover/list:opacity-55 hover:!opacity-100 hover:bg-[var(--bg-inner)]/35"
+                        >
+                          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md border border-[var(--border-subtle)] bg-[var(--bg-inner)] font-mono text-[11px] font-bold text-[var(--text-primary)]">
                             {idx + 1}
                           </span>
                           <span className="min-w-0 break-words">{rec}</span>
                         </li>
                       ))}
                     </ol>
-                  </div>
+                  </SpotlightSurface>
                 </motion.section>
               </motion.div>
             )}

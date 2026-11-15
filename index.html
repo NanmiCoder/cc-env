@@ -3,8 +3,59 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <meta name="theme-color" content="#0C0C0E" />
-    <title>CC Env · Anthropic 环境风控与 IP 纯净度实验体检台</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+    <meta name="renderer" content="webkit" />
+    <meta name="theme-color" content="#0B0B0D" />
+    <title>CC Env · Claude Code / Anthropic 环境风控与 IP 纯净度体检台</title>
+    <meta
+      name="description"
+      content="专为 Claude Code 与 Anthropic API 使用者打造的实时网络环境体检台：一键检测边缘出口 IP 纯净度、机房/住宅属性、Anthropic/Claude 连通性与 WebRTC/DNS 泄露风险，并提供可执行修复方案。"
+    />
+    <meta
+      name="keywords"
+      content="CC Env,Claude Code,Anthropic,IP纯净度,环境风控,Claude封号检测,节点检测,WebRTC泄露,代理分流检测,AI网络体检"
+    />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <link rel="canonical" href="https://ccenv.app/" />
+
+    <!-- Open Graph / Social -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="CC Env" />
+    <meta property="og:locale" content="zh_CN" />
+    <meta property="og:url" content="https://ccenv.app/" />
+    <meta property="og:title" content="CC Env · Claude Code / Anthropic 环境风控与 IP 纯净度体检台" />
+    <meta
+      property="og:description"
+      content="一键检测出口 IP 纯净度、Anthropic/Claude 连通性、WebRTC 与 DNS 泄露风险，生成可执行的环境修复指南。"
+    />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="CC Env · Claude Code / Anthropic 环境风控与 IP 纯净度体检台" />
+    <meta
+      name="twitter:description"
+      content="一键检测出口 IP 纯净度、Anthropic/Claude 连通性、WebRTC 与 DNS 泄露风险，生成可执行的环境修复指南。"
+    />
+
+    <meta name="google-site-verification" content="JRL7XoruXqWPZwT8MLYcJdzKgppSJcm4qEtPkFfXV1Q" />
+    <meta name="msvalidate.01" content="5FC79EABB112B702A61D6B4433343ED8" />
+    <!-- 搜索引擎站长验证占位（获取验证码后替换 content 即可） -->
+    <!-- <meta name="baidu-site-verification" content="" /> -->
+    <!-- <meta name="sogou_site_verification" content="" /> -->
+    <!-- <meta name="360-site-verification" content="" /> -->
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "CC Env",
+        "url": "https://ccenv.app/",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "Web",
+        "inLanguage": "zh-CN",
+        "description": "专为 Claude Code 与 Anthropic API 使用者打造的实时网络环境体检台，检测出口 IP 纯净度、连通性与泄露风险。"
+      }
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -12,8 +63,23 @@
       rel="stylesheet"
     />
   </head>
-  <body class="bg-[#0C0C0E] text-zinc-100 antialiased selection:bg-[#D97757]/25 selection:text-orange-100">
+  <body class="bg-[#0B0B0D] text-zinc-100 antialiased selection:bg-zinc-500/25 selection:text-zinc-100">
     <div id="root"></div>
+    <noscript>
+      <main style="max-width:720px;margin:48px auto;padding:0 20px;font-family:sans-serif;line-height:1.7;">
+        <h1>CC Env · Claude Code / Anthropic 环境风控与 IP 纯净度体检台</h1>
+        <p>
+          CC Env 是面向 Claude Code 与 Anthropic API 开发者的网络环境诊断工具，用于实时评估当前出口 IP 纯净度、风控风险与代理分流一致性。
+        </p>
+        <ul>
+          <li>边缘出口 IP 情报与 ASN / 机房 / 住宅属性识别</li>
+          <li>Anthropic / Claude 服务连通性与延迟探测</li>
+          <li>WebRTC 真实 IP 泄露与 DNS 分流一致性检测</li>
+          <li>一键生成可直接交给 AI Agent 执行的环境修复提示词</li>
+        </ul>
+        <p>请启用 JavaScript 以运行完整实时检测（访问地址：<a href="https://ccenv.app/">https://ccenv.app/</a>）。</p>
+      </main>
+    </noscript>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

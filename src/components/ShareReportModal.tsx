@@ -487,7 +487,7 @@ export default function ShareReportModal({
         {/* Modal Header */}
         <div className="flex items-center justify-between border-b border-[var(--border-subtle)] px-5 py-3.5">
           <div className="flex items-center gap-2 text-sm font-semibold text-[var(--text-primary)]">
-            <ClaudeFlowerLogo className="h-4 w-4 text-[#D97757]" />
+            <ClaudeFlowerLogo className="h-4 w-4 text-[var(--text-primary)]" />
             <span className="font-mono">CC Env</span>
             <span className="text-xs font-normal text-[var(--text-muted)]">· 分享海报</span>
           </div>
@@ -531,7 +531,7 @@ export default function ShareReportModal({
           <button
             onClick={handleDownload}
             disabled={!posterUrl}
-            className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-[#D97757] px-3 py-2.5 text-xs font-semibold text-white transition hover:bg-[#c86646] disabled:opacity-50"
+            className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-[var(--accent)] px-3 py-2.5 text-xs font-semibold text-[var(--accent-fg)] transition hover:opacity-90 disabled:opacity-50"
           >
             <Download className="h-3.5 w-3.5" />
             保存分享图
