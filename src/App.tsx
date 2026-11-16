@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { motion, useReducedMotion, useScroll } from 'framer-motion';
 import {
   AlertTriangle,
@@ -354,29 +354,42 @@ export default function App() {
     }
   }, []);
 
+  const runRef = useRef(0);
+  const controllerRef = useRef<AbortController | null>(null);
+
   const runScan = useCallback(async () => {
+    const run = ++runRef.current;
+    controllerRef.current?.abort();
+    const controller = new AbortController();
+    controllerRef.current = controller;
+
     setLoading(true);
     setError(null);
     setStageText('1/3 正在获取 Cloudflare 边缘出口与 IP 情报...');
 
     try {
-      const inspectRes = await fetch('/api/inspect', { cache: 'no-store' });
+      const inspectRes = await fetch('/api/inspect', {
+        cache: 'no-store',
+        signal: controller.signal,
+      });
       if (!inspectRes.ok) {
         throw new Error(`边缘检测接口返回异常 (${inspectRes.status})`);
       }
       const server = (await inspectRes.json()) as ServerInspectResult;
+      if (run !== runRef.current || controller.signal.aborted) return;
 
       setStageText('2/3 正在并发探测国内直连 IP、DNS 泄露、WebRTC 与生态可达性...');
       const browser = collectBrowserEnv();
       const [domesticIp, dnsLeak, dualStack, webrtc, splitTunnel, anthropicEndpoints] =
         await Promise.all([
-          probeDomesticIp(server.ip),
-          probeDnsLeak(server.geo.country),
-          probeDualStack(server.ip),
-          probeWebRTC(server.ip),
-          probeSplitTunnel(),
-          probeAnthropicEndpoints(),
+          probeDomesticIp(server.ip, controller.signal),
+          probeDnsLeak(server.geo.country, controller.signal),
+          probeDualStack(server.ip, controller.signal),
+          probeWebRTC(server.ip, controller.signal),
+          probeSplitTunnel(controller.signal),
+          probeAnthropicEndpoints(controller.signal),
         ]);
+      if (run !== runRef.current || controller.signal.aborted) return;
 
       setStageText('3/3 正在生成风控评分与审计报告...');
       const history = compareAndSaveIpHistory(server.ip, server.geo.country, server.network.asn);
@@ -404,18 +417,31 @@ export default function App() {
         scannedAt: new Date().toLocaleString('zh-CN', { hour12: false }),
       });
     } catch (err) {
+      if (run !== runRef.current || controller.signal.aborted) return;
       setError(err instanceof Error ? err.message : '检测过程中发生未知错误');
     } finally {
-      setLoading(false);
+      if (run === runRef.current && !controller.signal.aborted) {
+        setLoading(false);
+      }
     }
   }, []);
 
   useEffect(() => {
-    runScan();
+    void runScan();
+    return () => {
+      runRef.current += 1;
+      controllerRef.current?.abort();
+    };
   }, [runScan]);
 
   const handleCopyReport = async () => {
     if (!report) return;
+    const webrtcText =
+      report.webrtc.publicIps.length > 0
+        ? report.webrtc.publicIps.map((i) => maskIp(i, hideIp)).join(', ')
+        : report.webrtc.status === 'unknown'
+          ? '未知'
+          : '无公网暴露';
     const summaryText = [
       `=== CC Env 实验性风控体检报告 ===`,
       `检测时间: ${report.scannedAt}`,
@@ -423,7 +449,7 @@ export default function App() {
       `海外代理出口: ${maskIp(report.server.ip, hideIp)} (${report.server.geo.country} ${report.server.geo.city || ''})`,
       `国内直连出口: ${report.domesticIp.ip ? `${maskIp(report.domesticIp.ip, hideIp)} (${report.domesticIp.locationLabel || ''})` : '未检出'}`,
       `DNS 出口: ${report.dnsLeak.dnsIp ? `${maskIp(report.dnsLeak.dnsIp, hideIp)} (${report.dnsLeak.dnsGeo || ''})` : '未知'}`,
-      `WebRTC UDP: ${report.webrtc.status} (${report.webrtc.publicIps.map((i) => maskIp(i, hideIp)).join(', ') || '无公网暴露'})`,
+      `WebRTC UDP: ${report.webrtc.status} (${webrtcText})`,
       `网络类型: ${report.assessment.ipTierLabel} | AS${report.server.network.asn ?? '-'} ${report.server.network.asOrg ?? ''}`,
       `系统时区: ${report.browser.timezone} (IP 时区: ${report.server.geo.timezone || '-'})`,
       `检测地址: https://ccenv.app`,
@@ -976,14 +1002,20 @@ export default function App() {
                       <span className="inline-flex items-center gap-1.5 rounded-md border border-[var(--border-soft)] bg-[var(--bg-inner)] px-2 py-0.5 font-mono text-[10px] font-medium text-[var(--text-primary)]">
                         <span
                           className={`h-1.5 w-1.5 rounded-full ${
-                            report.webrtc.status === 'leaked' ? 'bg-rose-500' : 'bg-emerald-500'
+                            report.webrtc.status === 'leaked'
+                              ? 'bg-rose-500'
+                              : report.webrtc.status === 'unknown'
+                                ? 'bg-zinc-400'
+                                : 'bg-emerald-500'
                           }`}
                         />
                         {report.webrtc.status === 'leaked'
                           ? '异常泄露'
-                          : report.webrtc.status === 'matched'
-                            ? '与代理一致'
-                            : '已屏蔽'}
+                          : report.webrtc.status === 'unknown'
+                            ? '未知'
+                            : report.webrtc.status === 'matched'
+                              ? '与代理一致'
+                              : '已屏蔽'}
                       </span>
                     </div>
 
@@ -1000,7 +1032,9 @@ export default function App() {
                         >
                           {report.webrtc.publicIps.length
                             ? report.webrtc.publicIps.map((i) => maskIp(i, hideIp)).join(', ')
-                            : '无公网暴露'}
+                            : report.webrtc.status === 'unknown'
+                              ? '未知'
+                              : '无公网暴露'}
                         </dd>
                       </div>
                       <div className="flex items-center justify-between gap-2">

@@ -349,7 +349,9 @@ export default function ShareReportModal({
                 ? `异常泄露 (${maskIp(webrtc.publicIps[0], hideIp)})`
                 : webrtc.status === 'matched'
                   ? '与代理出口一致'
-                  : '已屏蔽安全',
+                  : webrtc.status === 'unknown'
+                    ? '未知'
+                    : '已屏蔽安全',
             ok: webrtc.status !== 'leaked',
           },
           {

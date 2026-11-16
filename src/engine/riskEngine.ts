@@ -201,7 +201,7 @@ export function evaluateRisk(
       detail: `WebRTC 探测到的公网 IP (${webrtc.publicIps.join(', ')}) 与 HTTP 出口完全一致。`,
       impact: '无泄露',
     });
-  } else {
+  } else if (webrtc.status === 'protected') {
     findings.push({
       id: 'webrtc-protected',
       category: 'leak',
@@ -209,6 +209,17 @@ export function evaluateRisk(
       severity: 'pass',
       detail: '未能通过 STUN 提取到公网 IP，有效防止了底层 UDP 泄露。',
       impact: '安全',
+    });
+  } else {
+    leakScore -= 2;
+    const iceNote = webrtc.iceErrorCount > 0 ? `（STUN 出现 ${webrtc.iceErrorCount} 次 ICE 错误）` : '';
+    findings.push({
+      id: 'webrtc-unknown',
+      category: 'leak',
+      title: 'WebRTC 检测未完成',
+      severity: 'info',
+      detail: `未通过 STUN 取得公网 UDP 候选地址${iceNote}（可能仅返回本地/mDNS 候选、UDP 受限、超时或浏览器不支持），不将未知结果当作安全。`,
+      impact: '-2 分',
     });
   }
 

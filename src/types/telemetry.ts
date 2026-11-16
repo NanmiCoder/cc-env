@@ -80,11 +80,12 @@ export interface WebRtcIpGeo {
 
 export interface WebRtcResult {
   supported: boolean;
-  status: 'protected' | 'matched' | 'leaked' | 'timeout';
+  status: 'protected' | 'matched' | 'leaked' | 'unknown';
   publicIps: string[];
   ipDetails: WebRtcIpGeo[];
   localCandidates: string[];
   candidateCount: number;
+  iceErrorCount: number;
 }
 
 export interface DualStackResult {

@@ -11,21 +11,37 @@ import type {
   WebRtcResult,
 } from '../types/telemetry';
 
-async function fetchJsonWithTimeout<T>(url: string, timeoutMs: number): Promise<T | null> {
+export async function fetchJsonWithTimeout<T>(
+  url: string,
+  timeoutMs: number,
+  signal?: AbortSignal
+): Promise<T | null> {
+  if (signal?.aborted) return null;
   const controller = new AbortController();
+  const abort = () => controller.abort(signal?.reason);
+  signal?.addEventListener('abort', abort, { once: true });
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const res = await fetch(url, { signal: controller.signal, cache: 'no-store' });
+    const res = await fetch(url, {
+      signal: controller.signal,
+      cache: 'no-store',
+      credentials: 'omit',
+      referrerPolicy: 'no-referrer',
+    });
     if (!res.ok) return null;
     return (await res.json()) as T;
   } catch {
     return null;
   } finally {
     clearTimeout(timer);
+    signal?.removeEventListener('abort', abort);
   }
 }
 
-export async function probeDomesticIp(proxyIp: string): Promise<DomesticIpResult> {
+export async function probeDomesticIp(
+  proxyIp: string,
+  signal?: AbortSignal
+): Promise<DomesticIpResult> {
   interface IpipNetResponse {
     ret?: string;
     data?: {
@@ -34,7 +50,11 @@ export async function probeDomesticIp(proxyIp: string): Promise<DomesticIpResult
     };
   }
 
-  const res = await fetchJsonWithTimeout<IpipNetResponse>('https://myip.ipip.net/json', 3200);
+  const res = await fetchJsonWithTimeout<IpipNetResponse>(
+    'https://myip.ipip.net/json',
+    3200,
+    signal
+  );
   if (res?.ret === 'ok' && res.data?.ip) {
     const loc = (res.data.location || []).filter(Boolean);
     const country = loc[0] || '';
@@ -58,13 +78,20 @@ export async function probeDomesticIp(proxyIp: string): Promise<DomesticIpResult
   };
 }
 
-export async function probeDnsLeak(exitCountryCode: string): Promise<DnsLeakResult> {
+export async function probeDnsLeak(
+  exitCountryCode: string,
+  signal?: AbortSignal
+): Promise<DnsLeakResult> {
   interface EdnsResponse {
     dns?: { ip?: string; geo?: string };
     edns?: { ip?: string; geo?: string };
   }
 
-  const res = await fetchJsonWithTimeout<EdnsResponse>('https://edns.ip-api.com/json', 3500);
+  const res = await fetchJsonWithTimeout<EdnsResponse>(
+    'https://edns.ip-api.com/json',
+    3500,
+    signal
+  );
   if (!res?.dns?.ip) {
     return {
       dnsIp: null,
@@ -90,10 +117,13 @@ export async function probeDnsLeak(exitCountryCode: string): Promise<DnsLeakResu
   };
 }
 
-export async function probeDualStack(mainIp: string): Promise<DualStackResult> {
+export async function probeDualStack(
+  mainIp: string,
+  signal?: AbortSignal
+): Promise<DualStackResult> {
   const [v4Res, v6Res] = await Promise.all([
-    fetchJsonWithTimeout<{ ip?: string }>('https://api4.ipify.org?format=json', 3000),
-    fetchJsonWithTimeout<{ ip?: string }>('https://api6.ipify.org?format=json', 3000),
+    fetchJsonWithTimeout<{ ip?: string }>('https://api4.ipify.org?format=json', 3000, signal),
+    fetchJsonWithTimeout<{ ip?: string }>('https://api6.ipify.org?format=json', 3000, signal),
   ]);
 
   const ipv4 = v4Res?.ip ?? null;
@@ -114,15 +144,35 @@ export async function probeDualStack(mainIp: string): Promise<DualStackResult> {
   };
 }
 
-function isPrivateOrMdnsIp(ip: string): boolean {
-  if (ip.endsWith('.local')) return true;
-  if (ip.startsWith('10.') || ip.startsWith('192.168.') || ip.startsWith('127.')) return true;
-  if (/^172\.(1[6-9]|2\d|3[01])\./.test(ip)) return true;
-  if (ip.startsWith('fe80:') || ip.startsWith('fc') || ip.startsWith('fd') || ip === '::1') return true;
-  return false;
+export function isPrivateOrMdnsIp(ip: string): boolean {
+  const lower = ip.toLowerCase();
+  if (lower.startsWith('::ffff:')) {
+    return isPrivateOrMdnsIp(lower.slice(7));
+  }
+  return (
+    lower.endsWith('.local') ||
+    lower === '::' ||
+    lower === '::1' ||
+    lower.startsWith('0.') ||
+    lower.startsWith('10.') ||
+    lower.startsWith('192.168.') ||
+    lower.startsWith('127.') ||
+    lower.startsWith('169.254.') ||
+    (lower.startsWith('100.') &&
+      (() => {
+        const second = Number(lower.split('.')[1]);
+        return second >= 64 && second <= 127;
+      })()) ||
+    /^172\.(1[6-9]|2\d|3[01])\./.test(lower) ||
+    /^fe[89ab][0-9a-f]:/.test(lower) ||
+    /^(fc|fd|ff)[0-9a-f]{0,2}:/.test(lower)
+  );
 }
 
-export async function probeWebRTC(expectedExitIp: string): Promise<WebRtcResult> {
+export async function probeWebRTC(
+  expectedExitIp: string,
+  signal?: AbortSignal
+): Promise<WebRtcResult> {
   const raw = await new Promise<Omit<WebRtcResult, 'ipDetails'>>((resolve) => {
     const RTCPeer =
       window.RTCPeerConnection ||
@@ -132,10 +182,23 @@ export async function probeWebRTC(expectedExitIp: string): Promise<WebRtcResult>
     if (!RTCPeer) {
       resolve({
         supported: false,
-        status: 'protected',
+        status: 'unknown',
         publicIps: [],
         localCandidates: [],
         candidateCount: 0,
+        iceErrorCount: 0,
+      });
+      return;
+    }
+
+    if (signal?.aborted) {
+      resolve({
+        supported: true,
+        status: 'unknown',
+        publicIps: [],
+        localCandidates: [],
+        candidateCount: 0,
+        iceErrorCount: 0,
       });
       return;
     }
@@ -143,11 +206,41 @@ export async function probeWebRTC(expectedExitIp: string): Promise<WebRtcResult>
     const publicIps = new Set<string>();
     const localCandidates = new Set<string>();
     let candidateCount = 0;
+    let iceErrorCount = 0;
     let settled = false;
-
     let pc: RTCPeerConnection;
+
+    const finish = () => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      signal?.removeEventListener('abort', abort);
+      try {
+        pc.close();
+      } catch {
+        // The peer may already be closed.
+      }
+
+      const ips = [...publicIps];
+      const expectedNormalized = expectedExitIp.toLowerCase();
+      resolve({
+        supported: true,
+        status: ips.length
+          ? ips.some((ip) => ip.toLowerCase() !== expectedNormalized)
+            ? 'leaked'
+            : 'matched'
+          : 'unknown',
+        publicIps: ips,
+        localCandidates: [...localCandidates],
+        candidateCount,
+        iceErrorCount,
+      });
+    };
+
+    const abort = () => finish();
+
     try {
-      pc = new RTCPeerConnection({
+      pc = new RTCPeer({
         iceServers: [
           { urls: 'stun:stun.cloudflare.com:3478' },
           { urls: 'stun:stun.l.google.com:19302' },
@@ -156,82 +249,58 @@ export async function probeWebRTC(expectedExitIp: string): Promise<WebRtcResult>
     } catch {
       resolve({
         supported: false,
-        status: 'protected',
+        status: 'unknown',
         publicIps: [],
         localCandidates: [],
         candidateCount: 0,
+        iceErrorCount: 0,
       });
       return;
     }
 
-    const finish = (timedOut = false) => {
-      if (settled) return;
-      settled = true;
-      try {
-        pc.close();
-      } catch {
-        // ignore
-      }
-
-      const pubs = Array.from(publicIps);
-      let status: WebRtcResult['status'] = 'protected';
-      if (pubs.length > 0) {
-        const hasDiff = pubs.some((ip) => ip !== expectedExitIp);
-        status = hasDiff ? 'leaked' : 'matched';
-      } else if (timedOut && candidateCount === 0) {
-        status = 'protected';
-      }
-
-      resolve({
-        supported: true,
-        status,
-        publicIps: pubs,
-        localCandidates: Array.from(localCandidates),
-        candidateCount,
-      });
-    };
-
-    const timer = setTimeout(() => finish(true), 2800);
+    const timer = setTimeout(finish, 5000);
+    signal?.addEventListener('abort', abort, { once: true });
 
     pc.onicecandidate = (event) => {
       if (!event.candidate) {
-        clearTimeout(timer);
-        finish(false);
+        finish();
         return;
       }
       candidateCount += 1;
-      const cand = event.candidate.candidate;
-      const parts = cand.split(' ');
-      const addr = parts[4];
-      if (!addr) return;
+      const address = event.candidate.candidate.split(' ')[4];
+      if (!address) return;
 
-      if (isPrivateOrMdnsIp(addr)) {
-        localCandidates.add(addr);
+      if (isPrivateOrMdnsIp(address)) {
+        localCandidates.add(address);
       } else {
-        publicIps.add(addr);
+        publicIps.add(address);
       }
     };
 
+    // Single STUN errors (e.g. ICE 701) must not end gathering early before delayed srflx arrives.
+    pc.onicecandidateerror = () => {
+      iceErrorCount += 1;
+    };
+
     try {
-      pc.createDataChannel('probe');
-      pc.createOffer()
+      pc.createDataChannel('ccenv-probe');
+      void pc
+        .createOffer()
         .then((offer) => pc.setLocalDescription(offer))
-        .catch(() => {
-          clearTimeout(timer);
-          finish(false);
-        });
+        .catch(() => finish());
     } catch {
-      clearTimeout(timer);
-      finish(false);
+      finish();
     }
   });
 
   // Lookup geo/ISP for any exposed WebRTC public IPs
   const ipDetails: WebRtcIpGeo[] = [];
+  if (signal?.aborted) return { ...raw, ipDetails };
+
   if (raw.publicIps.length > 0) {
     const lookups = await Promise.all(
       raw.publicIps.slice(0, 3).map((ip) =>
-        fetchJsonWithTimeout<WebRtcIpGeo>(`/api/lookup?ip=${encodeURIComponent(ip)}`, 3200)
+        fetchJsonWithTimeout<WebRtcIpGeo>(`/api/lookup?ip=${encodeURIComponent(ip)}`, 3200, signal)
       )
     );
     for (const item of lookups) {
@@ -249,9 +318,15 @@ async function measureEndpoint(
   name: string,
   url: string,
   region: ProbeEndpointResult['region'],
-  timeoutMs = 2800
+  timeoutMs = 2800,
+  signal?: AbortSignal
 ): Promise<ProbeEndpointResult> {
+  if (signal?.aborted) {
+    return { name, region, reachable: false, rttMs: null };
+  }
   const controller = new AbortController();
+  const abort = () => controller.abort(signal?.reason);
+  signal?.addEventListener('abort', abort, { once: true });
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   const start = performance.now();
   try {
@@ -266,10 +341,11 @@ async function measureEndpoint(
     return { name, region, reachable: false, rttMs: null };
   } finally {
     clearTimeout(timer);
+    signal?.removeEventListener('abort', abort);
   }
 }
 
-export async function probeSplitTunnel(): Promise<SplitTunnelResult> {
+export async function probeSplitTunnel(signal?: AbortSignal): Promise<SplitTunnelResult> {
   const targets: Array<{ name: string; url: string; region: ProbeEndpointResult['region'] }> = [
     { name: 'Cloudflare Edge', url: '/api/ping', region: 'edge' },
     { name: 'claude.ai', url: 'https://claude.ai/favicon.ico', region: 'overseas' },
@@ -278,7 +354,7 @@ export async function probeSplitTunnel(): Promise<SplitTunnelResult> {
   ];
 
   const endpoints = await Promise.all(
-    targets.map((t) => measureEndpoint(t.name, t.url, t.region, 2800))
+    targets.map((t) => measureEndpoint(t.name, t.url, t.region, 2800, signal))
   );
 
   const cnResults = endpoints.filter((e) => e.region === 'cn' && e.reachable && e.rttMs !== null);
@@ -468,7 +544,9 @@ export function compareAndSaveIpHistory(
   return result;
 }
 
-export async function probeAnthropicEndpoints(): Promise<AnthropicEndpointCheck[]> {
+export async function probeAnthropicEndpoints(
+  signal?: AbortSignal
+): Promise<AnthropicEndpointCheck[]> {
   const specs: Array<{
     id: AnthropicEndpointCheck['id'];
     domain: string;
@@ -508,7 +586,7 @@ export async function probeAnthropicEndpoints(): Promise<AnthropicEndpointCheck[
   ];
 
   const probes = await Promise.all(
-    specs.map((spec) => measureEndpoint(spec.domain, spec.url, 'overseas', 2600))
+    specs.map((spec) => measureEndpoint(spec.domain, spec.url, 'overseas', 2600, signal))
   );
 
   return specs.map((spec, idx) => ({
