@@ -1,94 +1,36 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="340" viewBox="0 0 1200 340" role="img" aria-labelledby="hero-title hero-desc">
-  <title id="hero-title">CC Env · Anthropic &amp; Claude Code Environment Telemetry</title>
-  <desc id="hero-desc">Monochrome precision instrument header showing CC Env's 100-point risk scoring breakdown across Region Policy, IP Purity, Leak Check, Env Alignment, and Split-Tunnel Routing.</desc>
-
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="330" viewBox="0 0 1200 330" role="img" aria-labelledby="title desc">
+  <title id="title">CC Env · Claude 网络检测</title>
+  <desc id="desc">浏览器向 Claude 站点发起请求。把报告生成的提示词复制到本机终端，交给 Agent 复查。</desc>
   <defs>
-    <radialGradient id="keylight" cx="50%" cy="0%" r="85%">
-      <stop offset="0%" stop-color="#ffffff" stop-opacity="0.07"/>
-      <stop offset="100%" stop-color="#0b0b0d" stop-opacity="0"/>
-    </radialGradient>
-    <pattern id="crosshair" width="48" height="48" patternUnits="userSpaceOnUse">
-      <path d="M24 20v8M20 24h8" stroke="#ffffff" stroke-opacity="0.08" stroke-width="1"/>
+    <pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse">
+      <circle cx="1" cy="1" r="1.25" fill="#394246"/>
     </pattern>
+    <g id="window-dots" fill="#9ca9a5"><circle cx="0" cy="0" r="3"/><circle cx="11" cy="0" r="3"/><circle cx="22" cy="0" r="3"/></g>
   </defs>
-
-  <rect width="1200" height="340" rx="22" fill="#0B0B0D"/>
-  <rect width="1200" height="340" rx="22" fill="url(#crosshair)"/>
-  <rect width="1200" height="340" rx="22" fill="url(#keylight)"/>
-  <rect x="0.5" y="0.5" width="1199" height="339" rx="21.5" fill="none" stroke="#ffffff" stroke-opacity="0.1"/>
-
-  <!-- Left: Identity & Value -->
-  <g transform="translate(56 48)">
-    <!-- Eyebrow -->
-    <rect x="0" y="0" width="236" height="26" rx="13" fill="#141417" stroke="#ffffff" stroke-opacity="0.12"/>
-    <circle cx="15" cy="13" r="4" fill="#10B981"/>
-    <text x="27" y="17" fill="#A1A1AA" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" letter-spacing="1.2">TELEMETRY INSTRUMENT · CCENV.APP</text>
-
-    <!-- Title -->
-    <text x="0" y="88" fill="#F4F4F6" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif" font-size="56" font-weight="700" letter-spacing="-1.5">CC Env</text>
-
-    <!-- Value proposition -->
-    <text x="0" y="132" fill="#E4E4E7" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif" font-size="20" font-weight="500">Claude Code &amp; Anthropic 环境风控与 IP 纯净度体检台</text>
-    <text x="0" y="164" fill="#A1A1AA" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', sans-serif" font-size="15">实时评估边缘出口 IP、地区合规、WebRTC/DNS 泄露与双栈分流一致性</text>
-
-    <!-- Metadata pills -->
-    <g transform="translate(0 202)" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12">
-      <rect x="0" y="0" width="136" height="30" rx="8" fill="#141417" stroke="#ffffff" stroke-opacity="0.1"/>
-      <text x="14" y="19" fill="#D4D4D8">Cloudflare Edge</text>
-
-      <rect x="148" y="0" width="128" height="30" rx="8" fill="#141417" stroke="#ffffff" stroke-opacity="0.1"/>
-      <text x="162" y="19" fill="#D4D4D8">7-Probe Client</text>
-
-      <rect x="288" y="0" width="150" height="30" rx="8" fill="#141417" stroke="#ffffff" stroke-opacity="0.1"/>
-      <text x="302" y="19" fill="#D4D4D8">CLI + Agent Fix</text>
+  <rect width="1200" height="330" fill="#161b1d" rx="18"/>
+  <rect x="550" width="640" height="325" fill="url(#dots)"/>
+  <g font-family="system-ui, 'PingFang SC', 'Microsoft YaHei', sans-serif">
+    <text x="56" y="100" fill="#f6f1e6" font-size="68" font-weight="740" letter-spacing="-4">CC Env</text>
+    <text x="60" y="165" fill="#f6f1e6" font-size="37" font-weight="600">Claude 网络检测</text>
+    <path d="M60 207h64" stroke="#ffa47f" stroke-width="4"/>
+    <text x="60" y="254" fill="#c8d0cc" font-size="23">浏览器测连接，终端查原因。</text>
+  </g>
+  <g id="browser" transform="translate(552 42)">
+    <rect width="344" height="176" rx="12" fill="#22292b" stroke="#77847f" stroke-width="2"/>
+    <path d="M1 38h342" stroke="#677371"/>
+    <use href="#window-dots" x="17" y="19"/>
+    <g font-family="ui-monospace, Menlo, monospace" font-size="17" fill="#e7eee8">
+      <text x="28" y="76">claude.ai</text><text x="28" y="112">api.anthropic.com</text><text x="28" y="148">platform.claude.com</text>
     </g>
   </g>
-
-  <!-- Right: Real 100-pt Risk Scoring Breakdown -->
-  <g transform="translate(690 44)">
-    <rect x="0" y="0" width="454" height="252" rx="16" fill="#141417" stroke="#ffffff" stroke-opacity="0.1"/>
-    <text x="24" y="34" fill="#71717A" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" letter-spacing="1.2">RISK MODEL · 100 PTS TOTAL</text>
-    <text x="430" y="34" text-anchor="end" fill="#10B981" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" font-weight="600">PASS ≥ 85</text>
-    <line x1="24" y1="48" x2="430" y2="48" stroke="#ffffff" stroke-opacity="0.07"/>
-
-    <!-- Row 1: IP Purity 35 -->
-    <g transform="translate(24 72)">
-      <text x="0" y="0" fill="#F4F4F6" font-family="-apple-system, BlinkMacSystemFont, 'PingFang SC', sans-serif" font-size="13" font-weight="500">IP 纯净度与 ASN</text>
-      <text x="406" y="0" text-anchor="end" fill="#A1A1AA" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12">35 pts</text>
-      <rect x="0" y="10" width="406" height="5" rx="2.5" fill="#232329"/>
-      <rect x="0" y="10" width="340" height="5" rx="2.5" fill="#F4F4F6"/>
-    </g>
-
-    <!-- Row 2: Region Policy 25 -->
-    <g transform="translate(24 108)">
-      <text x="0" y="0" fill="#F4F4F6" font-family="-apple-system, BlinkMacSystemFont, 'PingFang SC', sans-serif" font-size="13" font-weight="500">地区合规策略</text>
-      <text x="406" y="0" text-anchor="end" fill="#A1A1AA" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12">25 pts</text>
-      <rect x="0" y="10" width="406" height="5" rx="2.5" fill="#232329"/>
-      <rect x="0" y="10" width="244" height="5" rx="2.5" fill="#10B981"/>
-    </g>
-
-    <!-- Row 3: Leak Check 15 -->
-    <g transform="translate(24 144)">
-      <text x="0" y="0" fill="#F4F4F6" font-family="-apple-system, BlinkMacSystemFont, 'PingFang SC', sans-serif" font-size="13" font-weight="500">WebRTC / DNS 泄露</text>
-      <text x="406" y="0" text-anchor="end" fill="#A1A1AA" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12">15 pts</text>
-      <rect x="0" y="10" width="406" height="5" rx="2.5" fill="#232329"/>
-      <rect x="0" y="10" width="146" height="5" rx="2.5" fill="#D4D4D8"/>
-    </g>
-
-    <!-- Row 4: Env Alignment 15 -->
-    <g transform="translate(24 180)">
-      <text x="0" y="0" fill="#F4F4F6" font-family="-apple-system, BlinkMacSystemFont, 'PingFang SC', sans-serif" font-size="13" font-weight="500">时区 / 语言指纹一致性</text>
-      <text x="406" y="0" text-anchor="end" fill="#A1A1AA" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12">15 pts</text>
-      <rect x="0" y="10" width="406" height="5" rx="2.5" fill="#232329"/>
-      <rect x="0" y="10" width="146" height="5" rx="2.5" fill="#A1A1AA"/>
-    </g>
-
-    <!-- Row 5: Split-Tunnel 10 -->
-    <g transform="translate(24 216)">
-      <text x="0" y="0" fill="#F4F4F6" font-family="-apple-system, BlinkMacSystemFont, 'PingFang SC', sans-serif" font-size="13" font-weight="500">双栈与分流路径</text>
-      <text x="406" y="0" text-anchor="end" fill="#A1A1AA" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12">10 pts</text>
-      <rect x="0" y="10" width="406" height="5" rx="2.5" fill="#232329"/>
-      <rect x="0" y="10" width="98" height="5" rx="2.5" fill="#71717A"/>
-    </g>
+  <g id="handoff" fill="none" stroke="#ffa47f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M910 82h77q18 0 18 18v28m-9-9 9 10 9-10"/>
+  </g>
+  <g id="terminal" transform="translate(848 145)">
+    <rect width="299" height="143" rx="10" fill="#f3efe5"/>
+    <text x="23" y="39" font-family="ui-monospace, Menlo, monospace" font-size="19" fill="#34413e">›_  Local Agent</text>
+    <path d="M22 55h253" stroke="#c4c7bc"/>
+    <text x="23" y="92" font-family="system-ui, 'PingFang SC', sans-serif" font-size="23" font-weight="600" fill="#1a2523">粘贴排查提示词</text>
+    <path d="M24 115h91m8 0h52" stroke="#b5bcb0" stroke-width="4" stroke-linecap="round"/>
   </g>
 </svg>
