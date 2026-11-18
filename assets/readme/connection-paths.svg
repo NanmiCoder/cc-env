@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1040 302" width="1040" height="302" role="img" aria-labelledby="title desc">
+  <title id="title">同一台电脑上的两条请求路径</title>
+  <desc id="desc">浏览器使用浏览器的代理与域名解析配置。终端里的 Claude Code 使用当前 shell 的环境与网络配置。两边都能向 Claude 发出请求，结果可能不同。</desc>
+  <defs>
+    <marker id="arrow" markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto" viewBox="0 0 7 7"><path d="m1 1 4.5 2.5L1 6" fill="none" stroke="#435a62" stroke-width="1.3"/></marker>
+  </defs>
+  <rect width="1040" height="302" rx="14" fill="#f3f3ea"/>
+  <g fill="none" stroke="#435a62" stroke-width="2.5">
+    <path d="M198 149h38q10 0 10-10V88q0-10 10-10h40M236 149q10 0 10 10v58q0 10 10 10h40"/>
+    <path d="M465 78h46m222 0h25q13 0 13 13v46q0 12 12 12h43M465 227h46m222 0h25q13 0 13-13v-52q0-13 12-13" marker-end="url(#arrow)"/>
+  </g>
+  <g fill="#172934">
+    <rect x="51" y="101" width="140" height="93" rx="9"/><path d="M39 202h164l-9 10H48z"/>
+  </g>
+  <rect x="59" y="109" width="124" height="75" rx="4" fill="#d6f097"/>
+  <g font-family="system-ui,'PingFang SC','Microsoft YaHei',sans-serif" fill="#172934">
+    <text x="121" y="155" font-size="20" font-weight="650" text-anchor="middle">这台电脑</text>
+    <rect x="298" y="52" width="164" height="53" rx="7" fill="#dde5e1"/>
+    <text x="380" y="86" font-size="24" text-anchor="middle">浏览器</text>
+    <rect x="298" y="200" width="164" height="53" rx="7" fill="#172934"/>
+    <text x="380" y="235" fill="#e7f5d3" font-size="22" text-anchor="middle">Claude Code</text>
+    <text x="622" y="72" font-size="23" text-anchor="middle">浏览器网络设置</text>
+    <text x="622" y="104" font-size="17" fill="#455c62" text-anchor="middle">站点探针在这里运行</text>
+    <text x="622" y="222" font-size="23" text-anchor="middle">终端网络设置</text>
+    <text x="622" y="254" font-size="17" fill="#455c62" text-anchor="middle">Agent 在这里复查</text>
+    <circle cx="899" cy="149" r="58" fill="#d6f097"/>
+    <text x="899" y="157" font-size="23" font-weight="630" text-anchor="middle">Claude</text>
+  </g>
+</svg>
