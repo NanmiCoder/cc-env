@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { motion, useReducedMotion, useScroll } from 'framer-motion';
 import {
   AlertTriangle,
+  ArrowUpRight,
   Bot,
   Check,
   CheckCircle2,
@@ -11,6 +12,7 @@ import {
   Eye,
   EyeOff,
   FlaskConical,
+  Github,
   Globe,
   Info,
   Laptop,
@@ -502,14 +504,14 @@ export default function App() {
               <span className="whitespace-nowrap font-mono text-sm font-bold tracking-tight text-[var(--text-primary)]">
                 CC Env
               </span>
-              <span className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap rounded border border-[var(--border-subtle)] bg-[var(--bg-inner)] px-1.5 py-0.5 font-mono text-[10px] font-semibold text-[var(--text-secondary)]">
+              <span className="hidden shrink-0 items-center gap-1 whitespace-nowrap rounded border border-[var(--border-subtle)] bg-[var(--bg-inner)] px-1.5 py-0.5 font-mono text-[10px] font-semibold text-[var(--text-secondary)] min-[400px]:inline-flex">
                 <FlaskConical className="h-2.5 w-2.5" />
                 LABS
               </span>
             </div>
 
             {report && !loading && (
-              <div className="hidden items-center gap-2 border-l border-[var(--border-subtle)] pl-3 font-mono text-[11px] text-[var(--text-muted)] sm:flex">
+              <div className="hidden items-center gap-2 border-l border-[var(--border-subtle)] pl-3 font-mono text-[11px] text-[var(--text-muted)] md:flex">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
                 <span>COLO {report.server.edge.colo}</span>
                 {report.server.edge.clientTcpRtt !== null && (
@@ -520,6 +522,18 @@ export default function App() {
           </div>
 
           <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+            <a
+              href="https://github.com/NanmiCoder/cc-env"
+              target="_blank"
+              rel="noopener noreferrer"
+              title="查看源码，给 CC Env 点个 Star"
+              aria-label="在新标签页打开 CC Env 的 GitHub 仓库"
+              className="inline-flex h-8 w-8 items-center justify-center gap-1 rounded-lg font-mono text-[11px] font-semibold text-[var(--text-secondary)] transition hover:bg-[var(--bg-inner)] hover:text-[var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 sm:w-auto sm:px-2"
+            >
+              <Github className="h-4 w-4" aria-hidden="true" />
+              <span className="hidden sm:inline">GitHub</span>
+              <ArrowUpRight className="hidden h-3 w-3 sm:block" aria-hidden="true" />
+            </a>
             <button
               onClick={toggleTheme}
               className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--text-secondary)] transition hover:border-[var(--text-muted)] hover:text-[var(--text-primary)] active:scale-[0.96]"
@@ -556,7 +570,7 @@ export default function App() {
               className="inline-flex h-8 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg bg-[var(--cta-bg)] px-2.5 font-mono text-[11px] font-semibold text-[var(--cta-text)] transition hover:opacity-90 disabled:opacity-60 sm:px-3"
             >
               <RefreshCw className={`h-3 w-3 shrink-0 ${loading ? 'animate-spin' : ''}`} />
-              <span>{loading ? '扫描中' : '重新检测'}</span>
+              <span className="max-[374px]:sr-only">{loading ? '扫描中' : '重新检测'}</span>
             </MagneticButton>
           </div>
         </div>
