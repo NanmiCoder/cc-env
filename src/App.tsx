@@ -504,7 +504,7 @@ export default function App() {
               <span className="whitespace-nowrap font-mono text-sm font-bold tracking-tight text-[var(--text-primary)]">
                 CC Env
               </span>
-              <span className="hidden shrink-0 items-center gap-1 whitespace-nowrap rounded border border-[var(--border-subtle)] bg-[var(--bg-inner)] px-1.5 py-0.5 font-mono text-[10px] font-semibold text-[var(--text-secondary)] min-[400px]:inline-flex">
+              <span className="hidden shrink-0 items-center gap-1 whitespace-nowrap rounded border border-[var(--border-subtle)] bg-[var(--bg-inner)] px-1.5 py-0.5 font-mono text-[10px] font-semibold text-[var(--text-secondary)] min-[480px]:inline-flex">
                 <FlaskConical className="h-2.5 w-2.5" />
                 LABS
               </span>
