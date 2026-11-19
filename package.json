@@ -12,7 +12,6 @@
     "cf:deploy": "npm run build && wrangler pages deploy dist --project-name=claude-env-guard"
   },
   "dependencies": {
-    "framer-motion": "^14.14.0",
     "lucide-react": "^0.511.0",
     "qrcode": "^1.5.4",
     "react": "^19.0.0",

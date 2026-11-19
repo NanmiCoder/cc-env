@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import QRCode from 'qrcode';
 import { Copy, Download, X } from 'lucide-react';
-import { ClaudeFlowerLogo } from './BrandAndText';
+import { Logo } from './shared';
 import { buildPosterSummary } from '../utils/agentPrompt';
 import type {
   BrowserEnvResult,
@@ -31,19 +31,19 @@ interface ShareReportModalProps {
 }
 
 const GRADE_HEX_DARK: Record<RiskGrade, { accent: string; bg: string }> = {
-  S: { accent: '#34d399', bg: 'rgba(16, 185, 129, 0.14)' },
-  A: { accent: '#22d3ee', bg: 'rgba(6, 182, 212, 0.14)' },
-  B: { accent: '#fbbf24', bg: 'rgba(245, 158, 11, 0.14)' },
-  C: { accent: '#fb923c', bg: 'rgba(249, 115, 22, 0.14)' },
-  F: { accent: '#fb7185', bg: 'rgba(244, 63, 94, 0.16)' },
+  S: { accent: '#62c093', bg: 'rgba(98, 192, 147, 0.14)' },
+  A: { accent: '#62c093', bg: 'rgba(98, 192, 147, 0.14)' },
+  B: { accent: '#e2ab4f', bg: 'rgba(226, 171, 79, 0.14)' },
+  C: { accent: '#e2ab4f', bg: 'rgba(226, 171, 79, 0.14)' },
+  F: { accent: '#f07f70', bg: 'rgba(240, 127, 112, 0.16)' },
 };
 
 const GRADE_HEX_LIGHT: Record<RiskGrade, { accent: string; bg: string }> = {
-  S: { accent: '#059669', bg: 'rgba(16, 185, 129, 0.10)' },
-  A: { accent: '#0891b2', bg: 'rgba(6, 182, 212, 0.10)' },
-  B: { accent: '#d97706', bg: 'rgba(245, 158, 11, 0.10)' },
-  C: { accent: '#ea580c', bg: 'rgba(249, 115, 22, 0.10)' },
-  F: { accent: '#e11d48', bg: 'rgba(244, 63, 94, 0.10)' },
+  S: { accent: '#2e7d5b', bg: 'rgba(46, 125, 91, 0.10)' },
+  A: { accent: '#2e7d5b', bg: 'rgba(46, 125, 91, 0.10)' },
+  B: { accent: '#b0741a', bg: 'rgba(176, 116, 26, 0.10)' },
+  C: { accent: '#b0741a', bg: 'rgba(176, 116, 26, 0.10)' },
+  F: { accent: '#c2402f', bg: 'rgba(194, 64, 47, 0.10)' },
 };
 
 function drawClaudeFlower(
@@ -99,6 +99,15 @@ export default function ShareReportModal({
       : 'https://ccenv.app';
 
   const isLight = theme === 'light';
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [open, onClose]);
 
   useEffect(() => {
     if (!open) return;
@@ -180,12 +189,12 @@ export default function ShareReportModal({
               warnColor: '#d97706',
             }
           : {
-              bg: '#050507',
-              card: 'rgba(13, 16, 26, 0.88)',
+              bg: '#171613',
+              card: 'rgba(31, 30, 26, 0.94)',
               cardBorder: 'rgba(255, 255, 255, 0.12)',
               dot: 'rgba(255, 255, 255, 0.06)',
               divider: 'rgba(255, 255, 255, 0.08)',
-              textPrimary: '#ffffff',
+              textPrimary: '#f0ebe1',
               textSecondary: 'rgba(255, 255, 255, 0.78)',
               textMuted: 'rgba(255, 255, 255, 0.48)',
               ringTrack: 'rgba(255, 255, 255, 0.1)',
@@ -206,7 +215,7 @@ export default function ShareReportModal({
         // Subtle terracotta radial glow at top
         const topGlow = ctx.createRadialGradient(w / 2, 0, 20, w / 2, 0, 520);
         topGlow.addColorStop(0, isLight ? 'rgba(217, 119, 87, 0.18)' : 'rgba(217, 119, 87, 0.26)');
-        topGlow.addColorStop(0.55, 'rgba(16, 185, 129, 0.05)');
+        topGlow.addColorStop(0.55, 'rgba(217, 119, 87, 0.04)');
         topGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
         ctx.fillStyle = topGlow;
         ctx.fillRect(0, 0, w, 520);
@@ -232,7 +241,7 @@ export default function ShareReportModal({
         drawClaudeFlower(ctx, 92, 94, 44, '#D97757');
 
         ctx.fillStyle = palette.textPrimary;
-        ctx.font = 'bold 34px "Space Mono", ui-monospace, monospace';
+        ctx.font = 'bold 34px "JetBrains Mono", ui-monospace, monospace';
         ctx.fillText('CC Env', 130, 104);
 
         ctx.fillStyle = palette.textMuted;
@@ -248,7 +257,7 @@ export default function ShareReportModal({
         ctx.fill();
         ctx.stroke();
         ctx.fillStyle = palette.pillText;
-        ctx.font = 'bold 16px "Space Mono", ui-monospace, monospace';
+        ctx.font = 'bold 16px "JetBrains Mono", ui-monospace, monospace';
         ctx.textAlign = 'center';
         ctx.fillText('ccenv.app', w - 158, 98);
         ctx.textAlign = 'left';
@@ -292,11 +301,11 @@ export default function ShareReportModal({
         ctx.stroke();
 
         ctx.fillStyle = gColor.accent;
-        ctx.font = 'bold 40px "Space Mono", ui-monospace, monospace';
+        ctx.font = 'bold 40px "JetBrains Mono", ui-monospace, monospace';
         ctx.textAlign = 'center';
         ctx.fillText(`${assessment.score}`, rCx, rCy + 10);
         ctx.fillStyle = palette.textMuted;
-        ctx.font = 'bold 13px "Space Mono", ui-monospace, monospace';
+        ctx.font = 'bold 13px "JetBrains Mono", ui-monospace, monospace';
         ctx.fillText(`${assessment.grade} 级风险`, rCx, rCy + 32);
         ctx.textAlign = 'left';
 
@@ -306,11 +315,11 @@ export default function ShareReportModal({
         ctx.fillText(`${assessment.grade} 级 · ${assessment.gradeLabel}`, 240, 254);
 
         ctx.fillStyle = palette.textSecondary;
-        ctx.font = '19px "Space Mono", ui-monospace, monospace';
+        ctx.font = '19px "JetBrains Mono", ui-monospace, monospace';
         ctx.fillText(assessment.ipTierLabel, 240, 294);
 
         ctx.fillStyle = palette.textMuted;
-        ctx.font = '15px "Space Mono", ui-monospace, monospace';
+        ctx.font = '15px "JetBrains Mono", ui-monospace, monospace';
         ctx.fillText(`检测时间: ${scannedAt}`, 240, 330);
 
         // 5. Telemetry Rows
@@ -376,7 +385,7 @@ export default function ShareReportModal({
           ctx.fillText(m.label, 84, y + 40);
 
           ctx.fillStyle = m.ok ? palette.okColor : palette.warnColor;
-          ctx.font = 'bold 18px "Space Mono", ui-monospace, monospace';
+          ctx.font = 'bold 18px "JetBrains Mono", ui-monospace, monospace';
           ctx.textAlign = 'right';
           const textVal = m.value.length > 36 ? `${m.value.slice(0, 35)}…` : m.value;
           ctx.fillText(textVal, w - 84, y + 40);
@@ -395,7 +404,7 @@ export default function ShareReportModal({
         ctx.stroke();
 
         ctx.fillStyle = gColor.accent;
-        ctx.font = 'bold 16px "Space Mono", ui-monospace, sans-serif';
+        ctx.font = 'bold 16px "JetBrains Mono", ui-monospace, sans-serif';
         ctx.fillText('诊断摘要与处理建议', 84, summaryY + 34);
 
         ctx.fillStyle = palette.textPrimary;
@@ -432,7 +441,7 @@ export default function ShareReportModal({
         ctx.fillText('扫码立即测试你的 Claude 环境', 260, footerY + 72);
 
         ctx.fillStyle = '#D97757';
-        ctx.font = 'bold 20px "Space Mono", ui-monospace, monospace';
+        ctx.font = 'bold 20px "JetBrains Mono", ui-monospace, monospace';
         ctx.fillText(shareUrl, 260, footerY + 110);
 
         ctx.fillStyle = palette.textMuted;
@@ -484,18 +493,23 @@ export default function ShareReportModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 p-4 backdrop-blur-md">
-      <div className="relative w-full max-w-lg overflow-hidden rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-page)] shadow-2xl">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+      role="dialog"
+      aria-modal="true"
+      aria-label="分享海报"
+    >
+      <div className="relative w-full max-w-lg overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--paper)] shadow-2xl">
         {/* Modal Header */}
-        <div className="flex items-center justify-between border-b border-[var(--border-subtle)] px-5 py-3.5">
-          <div className="flex items-center gap-2 text-sm font-semibold text-[var(--text-primary)]">
-            <ClaudeFlowerLogo className="h-4 w-4 text-[var(--text-primary)]" />
-            <span className="font-mono">CC Env</span>
-            <span className="text-xs font-normal text-[var(--text-muted)]">· 分享海报</span>
+        <div className="flex items-center justify-between border-b border-[var(--line)] px-5 py-3.5">
+          <div className="flex items-center gap-2 text-sm font-semibold text-[var(--ink)]">
+            <Logo className="h-4 w-4 text-[var(--ink)]" />
+            <span className="font-serif text-base">CC Env</span>
+            <span className="text-xs font-normal text-[var(--ink-3)]">· 分享海报</span>
           </div>
           <button
             onClick={onClose}
-            className="rounded-lg p-1 text-[var(--text-muted)] transition hover:bg-[var(--bg-surface-strong)] hover:text-[var(--text-primary)]"
+            className="rounded-lg p-1 text-[var(--ink-3)] transition hover:bg-[var(--sunk)] hover:text-[var(--ink)]"
             aria-label="关闭"
           >
             <X className="h-4 w-4" />
@@ -503,29 +517,29 @@ export default function ShareReportModal({
         </div>
 
         {/* Rendered Poster Image Preview */}
-        <div className="max-h-[72vh] overflow-y-auto bg-[var(--bg-inner)] p-4">
+        <div className="max-h-[72vh] overflow-y-auto bg-[var(--sunk)] p-4">
           {posterUrl ? (
             <img
               src={posterUrl}
               alt="CC Env 体检分享报告"
-              className="mx-auto w-full rounded-xl border border-[var(--border-subtle)] shadow-lg"
+              className="mx-auto w-full rounded-xl border border-[var(--line)] shadow-lg"
             />
           ) : (
-            <div className="flex h-96 items-center justify-center rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] font-mono text-xs text-[var(--text-muted)]">
+            <div className="flex h-96 items-center justify-center rounded-xl border border-[var(--line)] bg-[var(--card)] font-mono text-xs text-[var(--ink-3)]">
               正在生成高清分享海报...
             </div>
           )}
-          <p className="mt-2 text-center text-[11px] text-[var(--text-muted)]">
+          <p className="mt-2 text-center text-[11px] text-[var(--ink-3)]">
             手机端可直接长按图片保存或转发，桌面端可点击下方保存 PNG
           </p>
         </div>
 
         {/* Actions */}
-        <div className="flex items-center gap-2.5 border-t border-[var(--border-subtle)] bg-[var(--bg-surface)] px-5 py-3.5">
+        <div className="flex items-center gap-2.5 border-t border-[var(--line)] bg-[var(--card)] px-5 py-3.5">
           <button
             onClick={handleCopyImage}
             disabled={!posterUrl}
-            className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-inner)] px-3 py-2.5 text-xs font-medium text-[var(--text-primary)] transition hover:opacity-90 disabled:opacity-50"
+            className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-[var(--line)] bg-[var(--sunk)] px-3 py-2.5 text-xs font-medium text-[var(--ink)] transition hover:opacity-90 disabled:opacity-50"
           >
             <Copy className="h-3.5 w-3.5" />
             {imageCopied ? '已复制图片' : copyError ? '请长按或保存' : '复制图片'}
@@ -533,7 +547,7 @@ export default function ShareReportModal({
           <button
             onClick={handleDownload}
             disabled={!posterUrl}
-            className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-[var(--accent)] px-3 py-2.5 text-xs font-semibold text-[var(--accent-fg)] transition hover:opacity-90 disabled:opacity-50"
+            className="inline-flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-[var(--clay)] px-3 py-2.5 text-xs font-semibold text-[var(--clay-ink)] transition hover:opacity-90 disabled:opacity-50"
           >
             <Download className="h-3.5 w-3.5" />
             保存分享图
