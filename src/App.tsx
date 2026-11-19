@@ -12,7 +12,7 @@ import RouteMap from './ui/RouteMap';
 import Scanning from './ui/Scanning';
 import ShareReportModal from './ui/ShareReportModal';
 import Verdict from './ui/Verdict';
-import { BTN, maskIp, useCopy } from './ui/shared';
+import { BTN, maskIp, maskIpsInText, useCopy } from './ui/shared';
 
 export default function App() {
   const { theme, toggleTheme } = useTheme();
@@ -38,6 +38,32 @@ export default function App() {
         : '',
     [report]
   );
+
+  // Finding and advice prose embeds raw IPs, so it follows the same mask as the IP fields.
+  const shown = useMemo(() => {
+    if (!report) return null;
+    const known = [
+      report.server.ip,
+      report.domesticIp.ip,
+      report.dnsLeak.dnsIp,
+      report.dnsLeak.ednsIp,
+      report.dualStack.ipv4,
+      report.dualStack.ipv6,
+      report.history.previousIp,
+      ...report.webrtc.publicIps,
+    ].filter((ip): ip is string => Boolean(ip));
+    const mask = (text: string) => maskIpsInText(text, known, hideIp);
+    return {
+      findings: report.assessment.findings.map((f) => ({
+        ...f,
+        title: mask(f.title),
+        detail: mask(f.detail),
+        impact: mask(f.impact),
+        remediation: f.remediation ? mask(f.remediation) : f.remediation,
+      })),
+      recommendations: report.assessment.recommendations.map(mask),
+    };
+  }, [report, hideIp]);
 
   const handleCopyReport = () => {
     if (!report) return;
@@ -94,7 +120,7 @@ export default function App() {
           </section>
         )}
 
-        {showReport && report && (
+        {showReport && report && shown && (
           <>
             <Verdict
               report={report}
@@ -106,9 +132,9 @@ export default function App() {
             />
             <div className="space-y-14 sm:space-y-20">
               <RouteMap report={report} hideIp={hideIp} onToggleIp={toggleIp} />
-              <Findings findings={report.assessment.findings} />
+              <Findings findings={shown.findings} />
               <Remedy
-                recommendations={report.assessment.recommendations}
+                recommendations={shown.recommendations}
                 cliItems={report.assessment.cliRecommendations}
                 agentPrompt={agentPrompt}
               />

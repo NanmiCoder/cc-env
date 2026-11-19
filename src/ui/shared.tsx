@@ -46,6 +46,17 @@ export function maskIp(ip: string | null | undefined, hidden: boolean): string {
   return '***.***.***.***';
 }
 
+const IPV4_IN_TEXT = /\b(\d{1,3})\.(\d{1,3})\.\d{1,3}\.\d{1,3}\b/g;
+
+export function maskIpsInText(text: string, knownIps: string[], hidden: boolean): string {
+  if (!hidden || !text) return text;
+  let out = text;
+  for (const ip of [...knownIps].sort((x, y) => y.length - x.length)) {
+    if (ip.includes(':')) out = out.split(ip).join(maskIp(ip, true));
+  }
+  return out.replace(IPV4_IN_TEXT, '$1.$2.***.***');
+}
+
 export function useCopy(resetMs = 2000) {
   const [copied, setCopied] = useState(false);
   const timer = useRef<number | undefined>(undefined);
