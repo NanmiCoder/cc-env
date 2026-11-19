@@ -98,6 +98,10 @@ export function useScan() {
         browser
       );
 
+      // Scoring is synchronous; hold briefly so the last stage is painted before the report replaces it.
+      await new Promise((resolve) => setTimeout(resolve, 450));
+      if (stale()) return;
+
       setReport({
         server,
         domesticIp,
