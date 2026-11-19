@@ -1,1233 +1,1322 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { motion, useReducedMotion, useScroll } from 'framer-motion';
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import {
-  AlertTriangle,
+  Activity,
+  ArrowRight,
   ArrowUpRight,
+  AudioLines,
   Bot,
   Check,
-  CheckCircle2,
-  ChevronDown,
-  ChevronUp,
+  CheckCheck,
+  ChevronRight,
+  CircleHelp,
   Copy,
   Eye,
   EyeOff,
-  FlaskConical,
+  FileText,
+  Fingerprint,
   Github,
-  Globe,
-  Info,
-  Laptop,
+  Globe2,
+  LayoutDashboard,
+  LoaderCircle,
+  LockKeyhole,
+  Menu,
   Moon,
   Network,
+  Radio,
   RefreshCw,
+  ScanLine,
   Server,
   Share2,
-  ShieldAlert,
-  Smartphone,
+  ShieldCheck,
+  Sparkles,
   Sun,
-  XCircle,
-} from 'lucide-react';
-import SiteBackdrop, {
-  BackdropSwitcher,
-  isBackdropVariant,
-  type BackdropVariant,
-} from './components/SiteBackdrop';
-import { ClaudeFlowerLogo, ScrambleIn } from './components/BrandAndText';
-import { AnthropicEndpointsSection, ClaudeCliGuardSection } from './components/ClaudeCliAdvisor';
-import EcosystemSidebar from './components/EcosystemSidebar';
-import HeroInstrumentTilt from './components/HeroInstrumentTilt';
-import MagneticButton from './components/MagneticButton';
-import ReportSkeleton from './components/ReportSkeleton';
-import ShareReportModal from './components/ShareReportModal';
-import SpotlightSurface from './components/SpotlightSurface';
-import {
-  collectBrowserEnv,
-  compareAndSaveIpHistory,
-  probeAnthropicEndpoints,
-  probeDnsLeak,
-  probeDomesticIp,
-  probeDualStack,
-  probeSplitTunnel,
-  probeWebRTC,
-} from './detectors/clientProbes';
-import { evaluateRisk } from './engine/riskEngine';
-import { buildAgentFixPrompt } from './utils/agentPrompt';
-import type {
-  AnthropicEndpointCheck,
-  BrowserEnvResult,
-  DnsLeakResult,
-  DomesticIpResult,
-  DualStackResult,
-  FindingSeverity,
-  IpHistoryComparison,
-  RiskAssessment,
-  RiskGrade,
-  ServerInspectResult,
-  SplitTunnelResult,
-  WebRtcResult,
-} from './types/telemetry';
-
-interface FullReport {
-  server: ServerInspectResult;
-  domesticIp: DomesticIpResult;
-  dnsLeak: DnsLeakResult;
-  dualStack: DualStackResult;
-  webrtc: WebRtcResult;
-  splitTunnel: SplitTunnelResult;
-  anthropicEndpoints: AnthropicEndpointCheck[];
-  browser: BrowserEnvResult;
-  history: IpHistoryComparison;
-  assessment: RiskAssessment;
-  scannedAt: string;
-}
-
-const GRADE_STYLES: Record<
-  RiskGrade,
-  {
-    text: string;
-    ring: string;
-    badge: string;
-    dot: string;
-  }
-> = {
-  S: {
-    text: 'text-[var(--text-primary)]',
-    ring: 'stroke-[var(--text-primary)]',
-    badge: 'border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--text-primary)]',
-    dot: 'bg-emerald-500',
-  },
-  A: {
-    text: 'text-[var(--text-primary)]',
-    ring: 'stroke-[var(--text-primary)]',
-    badge: 'border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--text-primary)]',
-    dot: 'bg-emerald-500',
-  },
-  B: {
-    text: 'text-[var(--text-primary)]',
-    ring: 'stroke-[var(--text-primary)]',
-    badge: 'border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--text-primary)]',
-    dot: 'bg-amber-500',
-  },
-  C: {
-    text: 'text-[var(--text-primary)]',
-    ring: 'stroke-[var(--text-secondary)]',
-    badge: 'border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--text-primary)]',
-    dot: 'bg-amber-500',
-  },
-  F: {
-    text: 'text-rose-500',
-    ring: 'stroke-rose-500',
-    badge: 'border-rose-500/25 bg-[var(--bg-surface)] text-rose-500',
-    dot: 'bg-rose-500',
-  },
-};
-
-const SEVERITY_CONFIG: Record<
-  FindingSeverity,
-  { icon: typeof CheckCircle2; color: string; bar: string }
-> = {
-  pass: {
-    icon: CheckCircle2,
-    color: 'text-emerald-500',
-    bar: 'bg-[var(--border-subtle)]',
-  },
-  info: {
-    icon: Info,
-    color: 'text-[var(--text-muted)]',
-    bar: 'bg-[var(--border-subtle)]',
-  },
-  warn: {
-    icon: AlertTriangle,
-    color: 'text-amber-500',
-    bar: 'bg-amber-500',
-  },
-  danger: {
-    icon: XCircle,
-    color: 'text-rose-500',
-    bar: 'bg-rose-500',
-  },
-};
-
-const CASCADE_CONTAINER = {
-  hidden: { opacity: 0 },
-  show: {
-    opacity: 1,
-    transition: {
-      staggerChildren: 0.05,
-    },
-  },
-};
-
-const CASCADE_ITEM = {
-  hidden: { opacity: 0, y: 12 },
-  show: {
-    opacity: 1,
-    y: 0,
-    transition: { type: 'spring' as const, stiffness: 120, damping: 20 },
-  },
-};
+  Terminal,
+  TriangleAlert,
+  Wifi,
+  X,
+} from "lucide-react";
+import { ClaudeFlowerLogo } from "./components/BrandAndText";
+import ShareReportModal from "./components/ShareReportModal";
+import { buildAgentFixPrompt } from "./utils/agentPrompt";
+import { useEnvironmentScan, type FullReport } from "./useEnvironmentScan";
+import type { FindingSeverity } from "./types/telemetry";
 
 function maskIp(ip: string | null | undefined, hidden: boolean): string {
-  if (!ip) return '-';
+  if (!ip) return "未检测到";
   if (!hidden) return ip;
-  if (ip.includes(':')) {
-    const parts = ip.split(':');
-    return `${parts.slice(0, 2).join(':')}:****:****`;
-  }
-  const parts = ip.split('.');
-  if (parts.length === 4) {
-    return `${parts[0]}.${parts[1]}.***.***`;
-  }
-  return '***.***.***.***';
+  if (ip.includes(":"))
+    return `${ip.split(":").slice(0, 2).join(":")}:****:****`;
+  const parts = ip.split(".");
+  return parts.length === 4
+    ? `${parts[0]}.${parts[1]}.***.***`
+    : "***.***.***.***";
 }
 
-function ScoreRing({ score, grade }: { score: number; grade: RiskGrade }) {
-  const radius = 46;
-  const circumference = 2 * Math.PI * radius;
-  const offset = circumference - (score / 100) * circumference;
-  const style = GRADE_STYLES[grade];
-  const [displayScore, setDisplayScore] = useState(0);
+const navItems = [
+  { id: "overview", label: "环境总览", icon: LayoutDashboard },
+  { id: "connectivity", label: "站点连通性", icon: Radio },
+  { id: "diagnostics", label: "网络与隐私", icon: ShieldCheck },
+  { id: "recommendations", label: "修复与建议", icon: Terminal },
+  { id: "audit", label: "检测明细", icon: FileText },
+];
+const severityLabel: Record<FindingSeverity, string> = {
+  pass: "通过",
+  info: "提示",
+  warn: "需关注",
+  danger: "异常",
+};
 
-  useEffect(() => {
-    let frame = 0;
-    const totalFrames = 30;
-    const timer = setInterval(() => {
-      frame += 1;
-      const progress = 1 - Math.pow(1 - frame / totalFrames, 3);
-      setDisplayScore(Math.round(score * progress));
-      if (frame >= totalFrames) {
-        setDisplayScore(score);
-        clearInterval(timer);
-      }
-    }, 18);
-    return () => clearInterval(timer);
-  }, [score]);
-
+function Badge({
+  children,
+  tone = "neutral",
+}: {
+  children: ReactNode;
+  tone?: string;
+}) {
   return (
-    <div className="relative flex h-28 w-28 shrink-0 items-center justify-center">
-      <svg
-        className="h-28 w-28 -rotate-90"
-        viewBox="0 0 112 112"
-        style={{ transform: 'translateZ(14px)' }}
-      >
-        <circle
-          cx="56"
-          cy="56"
-          r={radius}
-          fill="none"
-          stroke="var(--ring-track)"
-          strokeWidth="6"
+    <span className={`status-badge ${tone}`}>
+      <i />
+      {children}
+    </span>
+  );
+}
+function SectionTitle({
+  number,
+  title,
+  description,
+  children,
+}: {
+  number: string;
+  title: string;
+  description: string;
+  children?: ReactNode;
+}) {
+  return (
+    <div className="section-heading">
+      <div className="section-heading-main">
+        <span className="section-number">{number}</span>
+        <div>
+          <h2>{title}</h2>
+          <p>{description}</p>
+        </div>
+      </div>
+      {children}
+    </div>
+  );
+}
+function DetailRows({ rows }: { rows: [string, ReactNode][] }) {
+  return (
+    <dl className="detail-rows">
+      {rows.map(([label, value]) => (
+        <div key={label}>
+          <dt>{label}</dt>
+          <dd>{value}</dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+function DiagnosticCard({
+  icon,
+  title,
+  badge,
+  children,
+}: {
+  icon: ReactNode;
+  title: string;
+  badge?: ReactNode;
+  children: ReactNode;
+}) {
+  return (
+    <article className="diagnostic-card">
+      <div className="card-heading">
+        <span className="card-icon">{icon}</span>
+        <h3>{title}</h3>
+        {badge}
+      </div>
+      {children}
+    </article>
+  );
+}
+
+function ConnectionMap({
+  loading,
+  score,
+}: {
+  loading: boolean;
+  score?: number;
+}) {
+  return (
+    <div
+      className={`connection-map ${loading ? "is-scanning" : ""}`}
+      aria-hidden="true"
+    >
+      <div className="map-grid" />
+      <div className="orbit orbit-one" />
+      <div className="orbit orbit-two" />
+      <svg className="map-lines" viewBox="0 0 400 290" fill="none">
+        <path
+          d="M82 205 L200 145 L322 75 M84 72 L200 145 L325 220"
+          stroke="currentColor"
+          strokeDasharray="4 5"
         />
-        <motion.circle
-          cx="56"
-          cy="56"
-          r={radius}
-          fill="none"
-          strokeWidth="6"
-          strokeLinecap="round"
-          strokeDasharray={circumference}
-          initial={{ strokeDashoffset: circumference }}
-          animate={{ strokeDashoffset: offset }}
-          transition={{ type: 'spring', stiffness: 75, damping: 18 }}
-          className={style.ring}
+        <path
+          d="M200 145 L200 28 M200 145 L200 267"
+          stroke="currentColor"
+          opacity=".5"
         />
       </svg>
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className={`font-mono text-3xl font-bold tracking-tight ${style.text}`}>
-          {displayScore}
-        </span>
-        <span className="font-mono text-[10px] font-medium uppercase tracking-widest text-[var(--text-muted)]">
-          {grade} 级
-        </span>
+      <div className="map-center">
+        <ClaudeFlowerLogo />
+        <span>{loading ? "SCANNING" : "CC ENV"}</span>
       </div>
+      <span className="map-node node-browser">
+        <Globe2 />
+        <span>BROWSER</span>
+        <i />
+      </span>
+      <span className="map-node node-edge">
+        <Server />
+        <span>EDGE</span>
+        <i />
+      </span>
+      <span className="map-node node-cli">
+        <Terminal />
+        <span>CLAUDE CLI</span>
+        <i />
+      </span>
+      <span className="map-node node-dns">
+        <Network />
+        <span>DNS</span>
+        <i />
+      </span>
+      <span className="map-coordinate">
+        ENV / {loading ? "PROBING" : `SCORE ${score}`}
+      </span>
+      <span className="map-caption">
+        <span className="live-dot" />
+        {loading ? "正在建立环境快照" : "本轮网络观测已完成"}
+      </span>
     </div>
   );
 }
 
-function BoolTag({
-  label,
-  value,
-  dangerWhenTrue = true,
-}: {
-  label: string;
-  value: boolean | null;
-  dangerWhenTrue?: boolean;
-}) {
-  if (value === null) {
-    return (
-      <span className="inline-flex items-center gap-1.5 rounded-md border border-[var(--border-soft)] bg-[var(--bg-inner)] px-2 py-0.5 font-mono text-[11px] text-[var(--text-muted)]">
-        <span className="h-1.5 w-1.5 rounded-full bg-[var(--text-muted)]/40" />
-        {label}: 未知
-      </span>
-    );
-  }
-  const isBad = dangerWhenTrue ? value : !value;
-  return (
-    <span className="inline-flex items-center gap-1.5 rounded-md border border-[var(--border-soft)] bg-[var(--bg-inner)] px-2 py-0.5 font-mono text-[11px] text-[var(--text-primary)]">
-      <span
-        className={`h-1.5 w-1.5 rounded-full ${isBad ? 'bg-rose-500' : 'bg-emerald-500'}`}
-      />
-      {label}: {value ? '是' : '否'}
-    </span>
-  );
+function getRedactor(report: FullReport | null, hidden: boolean) {
+  const ips = report
+    ? [
+        report.server.ip,
+        report.domesticIp.ip,
+        report.dnsLeak.dnsIp,
+        report.dnsLeak.ednsIp,
+        report.dualStack.ipv4,
+        report.dualStack.ipv6,
+        ...report.webrtc.publicIps,
+      ]
+        .filter((ip): ip is string => Boolean(ip))
+        .sort((a, b) => b.length - a.length)
+    : [];
+  return (text: string) =>
+    hidden
+      ? ips.reduce(
+          (result, ip) => result.split(ip).join(maskIp(ip, true)),
+          text,
+        )
+      : text;
 }
 
 export default function App() {
-  const [loading, setLoading] = useState(true);
-  const [stageText, setStageText] = useState('正在连接 Cloudflare 边缘节点...');
-  const [error, setError] = useState<string | null>(null);
-  const [report, setReport] = useState<FullReport | null>(null);
-  const [copied, setCopied] = useState(false);
-  const [promptCopied, setPromptCopied] = useState(false);
+  const { loading, stage, error, report, runScan } = useEnvironmentScan();
   const [hideIp, setHideIp] = useState(true);
-  const [introOpen, setIntroOpen] = useState(false);
   const [shareOpen, setShareOpen] = useState(false);
-  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [introOpen, setIntroOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState("overview");
+  const [copied, setCopied] = useState<string | null>(null);
+  const copyTimer = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined,
+  );
+  const [copyError, setCopyError] = useState(false);
+  const [theme, setTheme] = useState<"light" | "dark">(() => {
     try {
-      const saved = localStorage.getItem('claudeguard:theme');
-      if (saved === 'light' || saved === 'dark') return saved;
+      const saved = localStorage.getItem("claudeguard:theme");
+      if (saved === "light" || saved === "dark") return saved;
     } catch {
-      // ignore
+      /* Storage may be unavailable in private browsing. */
     }
-    if (typeof window !== 'undefined' && window.matchMedia) {
-      return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
-    }
-    return 'dark';
+    return "light";
   });
 
   useEffect(() => {
-    const root = document.documentElement;
-    root.classList.remove('dark', 'light');
-    root.classList.add(theme);
+    document.documentElement.classList.remove("light", "dark");
+    document.documentElement.classList.add(theme);
+    try {
+      localStorage.setItem("claudeguard:theme", theme);
+    } catch {
+      /* Optional preference. */
+    }
   }, [theme]);
-
+  useEffect(() => () => clearTimeout(copyTimer.current), []);
   useEffect(() => {
-    if (typeof window === 'undefined' || !window.matchMedia) return;
-    const mq = window.matchMedia('(prefers-color-scheme: light)');
-    const onChange = (e: MediaQueryListEvent) => {
-      try {
-        if (!localStorage.getItem('claudeguard:theme')) {
-          setTheme(e.matches ? 'light' : 'dark');
-        }
-      } catch {
-        setTheme(e.matches ? 'light' : 'dark');
-      }
-    };
-    mq.addEventListener('change', onChange);
-    return () => mq.removeEventListener('change', onChange);
-  }, []);
-
-  const toggleTheme = () => {
-    setTheme((prev) => {
-      const next = prev === 'dark' ? 'light' : 'dark';
-      try {
-        localStorage.setItem('claudeguard:theme', next);
-      } catch {
-        // ignore
-      }
-      return next;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries.filter((entry) => entry.isIntersecting);
+        if (visible[0]) setActiveSection(visible[0].target.id);
+      },
+      { rootMargin: "-15% 0px -65% 0px" },
+    );
+    navItems.forEach((item) => {
+      const element = document.getElementById(item.id);
+      if (element) observer.observe(element);
     });
-  };
-
-  const prefersReducedMotion = useReducedMotion();
-  const { scrollYProgress } = useScroll();
-
-  // Backdrop variant preview (?bg=studio|dots|radar|crosshair|beams); switcher shows in dev or when ?bg is present
-  const [bgVariant, setBgVariant] = useState<BackdropVariant>(() => {
-    if (typeof window === 'undefined') return 'dots';
-    const fromUrl = new URLSearchParams(window.location.search).get('bg');
-    if (isBackdropVariant(fromUrl)) return fromUrl;
-    try {
-      const saved = localStorage.getItem('ccenv:bg');
-      if (isBackdropVariant(saved)) return saved;
-    } catch {
-      // ignore
-    }
-    return 'dots';
-  });
-  const showBgSwitcher =
-    import.meta.env.DEV ||
-    (typeof window !== 'undefined' && new URLSearchParams(window.location.search).has('bg'));
-  const changeBgVariant = useCallback((v: BackdropVariant) => {
-    setBgVariant(v);
-    try {
-      localStorage.setItem('ccenv:bg', v);
-    } catch {
-      // ignore
-    }
-  }, []);
-
-  const runRef = useRef(0);
-  const controllerRef = useRef<AbortController | null>(null);
-
-  const runScan = useCallback(async () => {
-    const run = ++runRef.current;
-    controllerRef.current?.abort();
-    const controller = new AbortController();
-    controllerRef.current = controller;
-
-    setLoading(true);
-    setError(null);
-    setStageText('1/3 正在获取 Cloudflare 边缘出口与 IP 情报...');
-
-    try {
-      const inspectRes = await fetch('/api/inspect', {
-        cache: 'no-store',
-        signal: controller.signal,
-      });
-      if (!inspectRes.ok) {
-        throw new Error(`边缘检测接口返回异常 (${inspectRes.status})`);
-      }
-      const server = (await inspectRes.json()) as ServerInspectResult;
-      if (run !== runRef.current || controller.signal.aborted) return;
-
-      setStageText('2/3 正在并发探测国内直连 IP、DNS 泄露、WebRTC 与生态可达性...');
-      const browser = collectBrowserEnv();
-      const [domesticIp, dnsLeak, dualStack, webrtc, splitTunnel, anthropicEndpoints] =
-        await Promise.all([
-          probeDomesticIp(server.ip, controller.signal),
-          probeDnsLeak(server.geo.country, controller.signal),
-          probeDualStack(server.ip, controller.signal),
-          probeWebRTC(server.ip, controller.signal),
-          probeSplitTunnel(controller.signal),
-          probeAnthropicEndpoints(controller.signal),
-        ]);
-      if (run !== runRef.current || controller.signal.aborted) return;
-
-      setStageText('3/3 正在生成风控评分与审计报告...');
-      const history = compareAndSaveIpHistory(server.ip, server.geo.country, server.network.asn);
-      const assessment = evaluateRisk(
-        server,
-        domesticIp,
-        dnsLeak,
-        dualStack,
-        webrtc,
-        splitTunnel,
-        browser
-      );
-
-      setReport({
-        server,
-        domesticIp,
-        dnsLeak,
-        dualStack,
-        webrtc,
-        splitTunnel,
-        anthropicEndpoints,
-        browser,
-        history,
-        assessment,
-        scannedAt: new Date().toLocaleString('zh-CN', { hour12: false }),
-      });
-    } catch (err) {
-      if (run !== runRef.current || controller.signal.aborted) return;
-      setError(err instanceof Error ? err.message : '检测过程中发生未知错误');
-    } finally {
-      if (run === runRef.current && !controller.signal.aborted) {
-        setLoading(false);
-      }
-    }
-  }, []);
-
+    return () => observer.disconnect();
+  }, [loading, report]);
   useEffect(() => {
-    void runScan();
-    return () => {
-      runRef.current += 1;
-      controllerRef.current?.abort();
+    if (!menuOpen) return;
+    const handleKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setMenuOpen(false);
     };
-  }, [runScan]);
+    document.addEventListener("keydown", handleKey);
+    return () => document.removeEventListener("keydown", handleKey);
+  }, [menuOpen]);
 
-  const handleCopyReport = async () => {
-    if (!report) return;
-    const webrtcText =
-      report.webrtc.publicIps.length > 0
-        ? report.webrtc.publicIps.map((i) => maskIp(i, hideIp)).join(', ')
-        : report.webrtc.status === 'unknown'
-          ? '未知'
-          : '无公网暴露';
-    const summaryText = [
-      `=== CC Env 实验性风控体检报告 ===`,
-      `检测时间: ${report.scannedAt}`,
-      `综合评分: ${report.assessment.score}/100 (${report.assessment.grade} 级 - ${report.assessment.gradeLabel})`,
-      `海外代理出口: ${maskIp(report.server.ip, hideIp)} (${report.server.geo.country} ${report.server.geo.city || ''})`,
-      `国内直连出口: ${report.domesticIp.ip ? `${maskIp(report.domesticIp.ip, hideIp)} (${report.domesticIp.locationLabel || ''})` : '未检出'}`,
-      `DNS 出口: ${report.dnsLeak.dnsIp ? `${maskIp(report.dnsLeak.dnsIp, hideIp)} (${report.dnsLeak.dnsGeo || ''})` : '未知'}`,
-      `WebRTC UDP: ${report.webrtc.status} (${webrtcText})`,
-      `网络类型: ${report.assessment.ipTierLabel} | AS${report.server.network.asn ?? '-'} ${report.server.network.asOrg ?? ''}`,
-      `系统时区: ${report.browser.timezone} (IP 时区: ${report.server.geo.timezone || '-'})`,
-      `检测地址: https://ccenv.app`,
-    ].join('\n');
-
+  const copyText = async (text: string, key: string) => {
     try {
-      await navigator.clipboard.writeText(summaryText);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
+      await navigator.clipboard.writeText(text);
+      clearTimeout(copyTimer.current);
+      setCopied(key);
+      setCopyError(false);
+      copyTimer.current = setTimeout(() => setCopied(null), 2400);
     } catch {
-      // ignore
+      setCopyError(true);
     }
   };
-
-  const handleCopyAgentPrompt = async () => {
+  const redact = getRedactor(report, hideIp);
+  const copyReport = () => {
     if (!report) return;
-    const promptText = buildAgentFixPrompt({
-      server: report.server,
-      domesticIp: report.domesticIp,
-      dnsLeak: report.dnsLeak,
-      webrtc: report.webrtc,
-      splitTunnel: report.splitTunnel,
-      browser: report.browser,
-      assessment: report.assessment,
-    });
-    try {
-      await navigator.clipboard.writeText(promptText);
-      setPromptCopied(true);
-      setTimeout(() => setPromptCopied(false), 2200);
-    } catch {
-      // ignore
-    }
+    void copyText(
+      [
+        "CC Env · 网络环境检测报告",
+        `检测时间：${report.scannedAt}`,
+        `环境评分：${report.assessment.score}/100 · ${report.assessment.grade} 级`,
+        `网络出口：${maskIp(report.server.ip, hideIp)} · ${report.server.geo.country} ${report.server.geo.city || ""}`,
+        `国内直连：${maskIp(report.domesticIp.ip, hideIp)}`,
+        `DNS：${report.dnsLeak.status} · ${maskIp(report.dnsLeak.dnsIp, hideIp)}`,
+        `WebRTC：${report.webrtc.status} · ${report.webrtc.publicIps.map((ip) => maskIp(ip, hideIp)).join(", ") || "无公网地址"}`,
+        ...report.anthropicEndpoints.map(
+          (ep) =>
+            `${ep.domain}：${ep.reachable ? "可达" : "未收到响应"} · ${ep.rttMs ?? "-"} ms`,
+        ),
+        `网络属性：${report.assessment.ipTierLabel} · AS${report.server.network.asn ?? "-"}`,
+        `系统时区：${report.browser.timezone}`,
+        "https://ccenv.app",
+      ].join("\n"),
+      "report",
+    );
   };
-
-  const gradeStyle = report ? GRADE_STYLES[report.assessment.grade] : GRADE_STYLES.B;
-  const ladderOrder: RiskGrade[] = ['F', 'C', 'B', 'A', 'S'];
+  const copyPrompt = () => {
+    if (!report) return;
+    void copyText(buildAgentFixPrompt(report), "prompt");
+  };
+  const ready = Boolean(report && !loading && !error);
+  const visibleReport = ready ? report : null;
+  const issueCount = visibleReport?.assessment.findings.filter(
+    (item) => item.severity === "warn" || item.severity === "danger",
+  ).length;
+  const stageLabels = [
+    "获取网络出口与 IP 情报",
+    "检测站点、DNS 与 WebRTC",
+    "生成环境评分与报告",
+  ];
+  const ipButton = (ip: string | null | undefined) => (
+    <button
+      className="ip-value"
+      onClick={() => setHideIp((value) => !value)}
+      aria-label={hideIp ? "显示 IP 地址" : "隐藏 IP 地址"}
+    >
+      {maskIp(ip, hideIp)}
+    </button>
+  );
 
   return (
-    <div className="relative isolate min-h-[100dvh] overflow-x-clip bg-[var(--bg-page)] text-[var(--text-primary)]">
-      {/* L0-L1.5: Precision CAD Blueprint + AI Optical Glass Artwork + Readability Scrim */}
-      <SiteBackdrop variant={bgVariant} />
-      {showBgSwitcher && <BackdropSwitcher value={bgVariant} onChange={changeBgVariant} />}
-
-      {/* Sticky Glass Header + Scroll Progress Hairline */}
-      <header className="sticky top-0 z-30 border-b border-[var(--border-subtle)] bg-[var(--bg-surface)]/78 backdrop-blur-xl">
-        <div className="mx-auto flex h-14 w-full max-w-[1400px] items-center justify-between gap-2 px-3.5 sm:gap-3 sm:px-6 lg:px-8">
-          <div className="flex shrink-0 items-center gap-2 sm:gap-3">
-            <div className="flex shrink-0 items-center gap-2">
-              <ClaudeFlowerLogo className="h-5 w-5 shrink-0 text-[var(--text-primary)]" />
-              <span className="whitespace-nowrap font-mono text-sm font-bold tracking-tight text-[var(--text-primary)]">
-                CC Env
-              </span>
-              <span className="hidden shrink-0 items-center gap-1 whitespace-nowrap rounded border border-[var(--border-subtle)] bg-[var(--bg-inner)] px-1.5 py-0.5 font-mono text-[10px] font-semibold text-[var(--text-secondary)] min-[480px]:inline-flex">
-                <FlaskConical className="h-2.5 w-2.5" />
-                LABS
-              </span>
-            </div>
-
-            {report && !loading && (
-              <div className="hidden items-center gap-2 border-l border-[var(--border-subtle)] pl-3 font-mono text-[11px] text-[var(--text-muted)] md:flex">
-                <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-                <span>COLO {report.server.edge.colo}</span>
-                {report.server.edge.clientTcpRtt !== null && (
-                  <span>· {report.server.edge.clientTcpRtt} ms</span>
-                )}
-              </div>
-            )}
+    <div className="app-shell">
+      <a className="skip-link" href="#main-content">
+        跳转到检测结果
+      </a>
+      {menuOpen && (
+        <button
+          className="sidebar-scrim"
+          aria-label="关闭导航"
+          onClick={() => setMenuOpen(false)}
+        />
+      )}
+      <aside className={`sidebar ${menuOpen ? "open" : ""}`}>
+        <a
+          href="#overview"
+          className="brand"
+          onClick={() => setMenuOpen(false)}
+        >
+          <span className="brand-mark">
+            <AudioLines />
+          </span>
+          <span>
+            cc<span className="brand-light">env</span>
+            <span className="brand-period">.</span>
+          </span>
+          <span className="brand-beta">BETA</span>
+        </a>
+        <div className="workspace-label">
+          WORKSPACE <span>01</span>
+        </div>
+        <nav aria-label="主导航">
+          {navItems.map((item) => {
+            const Icon = item.icon;
+            return (
+              <a
+                key={item.id}
+                className={
+                  activeSection === item.id ? "nav-item active" : "nav-item"
+                }
+                href={`#${item.id}`}
+                onClick={() => {
+                  setActiveSection(item.id);
+                  setMenuOpen(false);
+                }}
+              >
+                <Icon />
+                <span>{item.label}</span>
+                {item.id === "overview" && <span className="nav-active-dot" />}
+              </a>
+            );
+          })}
+        </nav>
+        <div className="sidebar-note">
+          <span className="mini-label">
+            <LockKeyhole />
+            LOCAL FIRST
+          </span>
+          <h3>你的环境，你来掌控。</h3>
+          <p>在运行 Claude Code 的电脑上检测，让每一次连接更清晰。</p>
+          <a href="#recommendations" onClick={() => setMenuOpen(false)}>
+            了解如何排查 <ArrowUpRight />
+          </a>
+        </div>
+        <div className="sidebar-bottom">
+          <a
+            href="https://github.com/NanmiCoder/cc-env"
+            target="_blank"
+            rel="noreferrer"
+          >
+            <Github />
+            GitHub 开源仓库
+            <ArrowUpRight />
+          </a>
+          <div>
+            <span className="live-dot" />
+            独立开源 · 免费使用<span className="version">v1.0</span>
           </div>
+        </div>
+      </aside>
 
-          <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+      <div className="workspace">
+        <header className="topbar">
+          <div className="breadcrumb">
+            <button
+              className="icon-button mobile-menu"
+              aria-label="打开导航"
+              aria-expanded={menuOpen}
+              onClick={() => setMenuOpen((value) => !value)}
+            >
+              {menuOpen ? <X /> : <Menu />}
+            </button>
+            <span>工作台</span>
+            <ChevronRight />
+            <strong>
+              {navItems.find((item) => item.id === activeSection)?.label}
+            </strong>
+          </div>
+          <div className="topbar-actions">
+            <span className="privacy-label">
+              <LockKeyhole />
+              IP 默认脱敏
+            </span>
+            <span className="topbar-divider" />
+            <button
+              className="icon-button"
+              title={theme === "light" ? "切换为暗色主题" : "切换为亮色主题"}
+              aria-label="切换亮色/暗色主题"
+              onClick={() =>
+                setTheme((value) => (value === "light" ? "dark" : "light"))
+              }
+            >
+              {theme === "light" ? <Moon /> : <Sun />}
+            </button>
             <a
+              className="icon-button"
               href="https://github.com/NanmiCoder/cc-env"
               target="_blank"
-              rel="noopener noreferrer"
-              title="查看源码，给 CC Env 点个 Star"
-              aria-label="在新标签页打开 CC Env 的 GitHub 仓库"
-              className="inline-flex h-8 w-8 items-center justify-center gap-1 rounded-lg font-mono text-[11px] font-semibold text-[var(--text-secondary)] transition hover:bg-[var(--bg-inner)] hover:text-[var(--text-primary)] focus-visible:outline-2 focus-visible:outline-offset-2 sm:w-auto sm:px-2"
+              rel="noreferrer"
+              aria-label="GitHub 仓库"
             >
-              <Github className="h-4 w-4" aria-hidden="true" />
-              <span className="hidden sm:inline">GitHub</span>
-              <ArrowUpRight className="hidden h-3 w-3 sm:block" aria-hidden="true" />
+              <Github />
             </a>
-            <button
-              onClick={toggleTheme}
-              className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--text-secondary)] transition hover:border-[var(--text-muted)] hover:text-[var(--text-primary)] active:scale-[0.96]"
-              title={theme === 'dark' ? '切换为亮色主题' : '切换为暗色主题'}
-              aria-label="切换亮色/暗色主题"
-            >
-              {theme === 'dark' ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
-            </button>
-
-            <button
-              onClick={() => setHideIp((v) => !v)}
-              className={`inline-flex h-8 items-center gap-1.5 rounded-lg border px-2.5 font-mono text-[11px] transition active:scale-[0.98] ${
-                hideIp
-                  ? 'border-[var(--border-subtle)] bg-[var(--bg-surface)] text-[var(--text-secondary)] hover:border-[var(--text-muted)] hover:text-[var(--text-primary)]'
-                  : 'border-transparent bg-[var(--accent)] text-[var(--accent-fg)]'
-              }`}
-            >
-              {hideIp ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5" />}
-              <span className="hidden sm:inline">{hideIp ? '显示 IP' : '隐藏 IP'}</span>
-            </button>
-
-            <button
-              onClick={() => setShareOpen(true)}
-              disabled={!report || loading}
-              className="inline-flex h-8 items-center gap-1.5 rounded-lg border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-2.5 font-mono text-[11px] text-[var(--text-primary)] transition hover:border-[var(--text-muted)] active:scale-[0.98] disabled:opacity-40"
-            >
-              <Share2 className="h-3.5 w-3.5 text-[var(--text-muted)]" />
-              <span className="hidden sm:inline">分享报告</span>
-            </button>
-
-            <MagneticButton
-              onClick={runScan}
-              disabled={loading}
-              className="inline-flex h-8 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-lg bg-[var(--cta-bg)] px-2.5 font-mono text-[11px] font-semibold text-[var(--cta-text)] transition hover:opacity-90 disabled:opacity-60 sm:px-3"
-            >
-              <RefreshCw className={`h-3 w-3 shrink-0 ${loading ? 'animate-spin' : ''}`} />
-              <span className="max-[374px]:sr-only">{loading ? '扫描中' : '重新检测'}</span>
-            </MagneticButton>
           </div>
-        </div>
+        </header>
 
-        {/* Continuous Scroll Depth Hairline */}
-        {!prefersReducedMotion && (
-          <motion.div
-            aria-hidden="true"
-            style={{ scaleX: scrollYProgress, transformOrigin: '0% 50%' }}
-            className="pointer-events-none absolute inset-x-0 -bottom-px h-[1.5px] bg-[var(--text-primary)]/45 will-change-transform"
-          />
-        )}
-      </header>
-
-      {/* Main Workspace + Right Sticky Ecosystem Sidebar */}
-      <div className="relative z-10 mx-auto w-full max-w-[1400px] px-4 py-6 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 gap-6 xl:grid-cols-[minmax(0,1fr)_304px] xl:items-start">
-          <main className="min-w-0">
-            {/* Loading Skeleton */}
-            {loading && <ReportSkeleton stageText={stageText} />}
-
-            {/* Error State */}
-            {error && (
-              <div className="mb-6 flex items-center justify-between rounded-xl border border-rose-500/35 bg-rose-500/10 px-4 py-3 text-sm text-rose-500">
-                <div className="flex items-center gap-2.5">
-                  <ShieldAlert className="h-5 w-5 shrink-0" />
-                  <span>{error}</span>
+        <main id="main-content" className="main-content">
+          <section id="overview" className="overview-section">
+            <div className="page-heading">
+              <div>
+                <div className="eyebrow">
+                  <span />
+                  CLAUDE ENVIRONMENT CHECK
                 </div>
-                <button
-                  onClick={runScan}
-                  className="rounded-lg bg-rose-500/20 px-3 py-1 text-xs font-medium transition hover:bg-rose-500/30 active:scale-[0.98]"
-                >
-                  重试
-                </button>
+                <h1>
+                  好环境，让灵感不断线<span>。</span>
+                </h1>
+                <p>一站式检查 Claude 网络连通性、出口质量与隐私泄露。</p>
+              </div>
+              <button
+                className="button primary rescan-button"
+                onClick={runScan}
+                disabled={loading}
+              >
+                <RefreshCw className={loading ? "spin" : ""} />
+                {loading ? "正在检测" : "重新检测"}
+                <span className="button-key">↻</span>
+              </button>
+            </div>
+            <div className="overview-toolbar">
+              <div>
+                <span
+                  className={`live-dot ${loading ? "pulse" : error ? "failed" : ""}`}
+                />
+                {loading
+                  ? "正在检测当前设备"
+                  : error
+                    ? "检测暂未完成"
+                    : "本次环境检测已完成"}
+                <span className="toolbar-separator">/</span>
+                <span className="scan-timestamp">
+                  {visibleReport
+                    ? visibleReport.scannedAt
+                    : "只需片刻，请保持页面打开"}
+                </span>
+              </div>
+              <button
+                onClick={() => setIntroOpen((value) => !value)}
+                aria-expanded={introOpen}
+              >
+                <CircleHelp />
+                检测原理
+              </button>
+            </div>
+            {introOpen && (
+              <div className="intro-panel">
+                <strong>从这台设备出发，检查真实的连接路径。</strong>
+                <p>
+                  通过边缘接口获取网络出口，并发检查 Claude 站点、DNS、WebRTC
+                  和浏览器环境。检测会访问外部探针，出口 IP
+                  会用于第三方情报查询。浏览器可达不代表终端或账号鉴权通过，评分也不是账号安全保证。
+                </p>
               </div>
             )}
 
-            {/* Main Report */}
-            {!loading && report && (
-              <motion.div
-                variants={CASCADE_CONTAINER}
-                initial="hidden"
-                animate="show"
-                className="space-y-5"
-              >
-                {/* Unified Split Hero + Risk Instrument */}
-                <motion.section variants={CASCADE_ITEM}>
-                  <SpotlightSurface>
-                    <div className="grid grid-cols-1 divide-y divide-[var(--border-soft)] lg:grid-cols-[1.2fr_0.85fr] lg:divide-x lg:divide-y-0">
-                    {/* Left: Editorial Title + Inline 3-Point Exit Strip */}
-                    <div className="flex flex-col justify-between p-5 sm:p-6">
-                      <div>
-                        <div className="flex flex-wrap items-center justify-between gap-2">
-                          <span className="font-mono text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--text-muted)]">
-                            Anthropic Environment Telemetry
-                          </span>
-                          <button
-                            type="button"
-                            onClick={() => setIntroOpen((v) => !v)}
-                            className="inline-flex items-center gap-1 font-mono text-[11px] text-[var(--text-muted)] transition hover:text-[var(--text-primary)]"
-                          >
-                            <span>{introOpen ? '收起原理' : '检测原理'}</span>
-                            {introOpen ? (
-                              <ChevronUp className="h-3 w-3" />
-                            ) : (
-                              <ChevronDown className="h-3 w-3" />
-                            )}
-                          </button>
-                        </div>
-
-                        <h1 className="mt-2 text-2xl font-semibold tracking-tight text-[var(--text-primary)] sm:text-[28px] sm:leading-tight">
-                          <ScrambleIn text="Anthropic 网络环境与 IP 纯净度自检" delay={40} />
-                        </h1>
-                        <p className="mt-2 max-w-[60ch] text-xs leading-relaxed text-[var(--text-secondary)] sm:text-sm">
-                          专为规避 Claude / Anthropic 账号风控打造的实验性体检台。默认脱敏隐藏公网 IP，点击任意 IP 字段即可展开。
-                        </p>
-
-                        {introOpen && (
-                          <div className="mt-4 grid gap-3 border-t border-[var(--border-soft)] pt-4 text-xs sm:grid-cols-3">
-                            <div>
-                              <div className="font-mono text-[11px] font-semibold text-[var(--text-primary)]">
-                                01 / 出口与家宽分级
-                              </div>
-                              <p className="mt-1 leading-relaxed text-[var(--text-muted)]">
-                                结合边缘遥测与多源 IP 情报，区分原生家宽 ISP、商业机房 VPS 与共享滥用节点。
-                              </p>
-                            </div>
-                            <div>
-                              <div className="font-mono text-[11px] font-semibold text-[var(--text-primary)]">
-                                02 / 分流与泄露探针
-                              </div>
-                              <p className="mt-1 leading-relaxed text-[var(--text-muted)]">
-                                并发探测国内直连出口、EDNS 解析归属与 WebRTC UDP 通道，抓出规则分流与底层泄露。
-                              </p>
-                            </div>
-                            <div>
-                              <div className="font-mono text-[11px] font-semibold text-[var(--text-primary)]">
-                                03 / 中文指纹一致性
-                              </div>
-                              <p className="mt-1 leading-relaxed text-[var(--text-muted)]">
-                                核验系统时区、浏览器语言偏好与中文字体特征，避免环境穿帮。
-                              </p>
-                            </div>
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Inline 3-Point Exit Telemetry Strip */}
-                      <div className="mt-6 grid grid-cols-1 divide-y divide-[var(--border-soft)] border-t border-[var(--border-soft)] pt-4 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
-                        <div
-                          onClick={() => setHideIp((v) => !v)}
-                          className="cursor-pointer py-2 transition hover:opacity-80 sm:py-0 sm:pr-4"
-                          title="点击切换显示/隐藏 IP"
-                        >
-                          <div className="flex items-center justify-between gap-1.5">
-                            <span className="text-[11px] text-[var(--text-muted)]">国内直连出口</span>
-                            <span className="inline-flex items-center gap-1 font-mono text-[10px] font-medium text-[var(--text-secondary)]">
-                              <span
-                                className={`h-1.5 w-1.5 rounded-full ${
-                                  report.domesticIp.isChinaDirect ? 'bg-amber-500' : 'bg-emerald-500'
-                                }`}
-                              />
-                              {report.domesticIp.isChinaDirect ? '分流直连' : '未检出'}
-                            </span>
-                          </div>
-                          <div className="mt-1 truncate font-mono text-sm font-semibold text-[var(--text-primary)]">
-                            {report.domesticIp.ip ? maskIp(report.domesticIp.ip, hideIp) : '未直连'}
-                          </div>
-                          <div className="mt-0.5 truncate text-[11px] text-[var(--text-muted)]">
-                            {report.domesticIp.locationLabel || '全局代理或海外原生'}
-                          </div>
-                        </div>
-
-                        <div
-                          onClick={() => setHideIp((v) => !v)}
-                          className="cursor-pointer py-2 transition hover:opacity-80 sm:px-4 sm:py-0"
-                          title="点击切换显示/隐藏 IP"
-                        >
-                          <div className="flex items-center justify-between gap-1.5">
-                            <span className="text-[11px] text-[var(--text-muted)]">海外代理出口</span>
-                            <span className="font-mono text-[10px] font-semibold text-[var(--text-primary)]">
-                              {report.server.geo.country}
-                            </span>
-                          </div>
-                          <div className="mt-1 truncate font-mono text-sm font-semibold text-[var(--text-primary)]">
-                            {maskIp(report.server.ip, hideIp)}
-                          </div>
-                          <div className="mt-0.5 truncate text-[11px] text-[var(--text-muted)]">
-                            AS{report.server.network.asn ?? '-'} {report.server.geo.city || ''}
-                          </div>
-                        </div>
-
-                        <div className="py-2 sm:py-0 sm:pl-4">
-                          <div className="flex items-center justify-between gap-1.5">
-                            <span className="text-[11px] text-[var(--text-muted)]">出口稳定性</span>
-                            <span className="inline-flex items-center gap-1 font-mono text-[10px] font-medium text-[var(--text-secondary)]">
-                              <span
-                                className={`h-1.5 w-1.5 rounded-full ${
-                                  report.history.status === 'changed' ? 'bg-amber-500' : 'bg-emerald-500'
-                                }`}
-                              />
-                              {report.history.status === 'same'
-                                ? '一致'
-                                : report.history.status === 'changed'
-                                  ? '跳变'
-                                  : '首次'}
-                            </span>
-                          </div>
-                          <div className="mt-1 truncate font-mono text-sm font-semibold text-[var(--text-primary)]">
-                            {report.history.status === 'same'
-                              ? '稳定未变'
-                              : report.history.status === 'changed'
-                                ? 'IP 已变更'
-                                : '已建立基线'}
-                          </div>
-                          <div className="mt-0.5 truncate text-[11px] text-[var(--text-muted)]">
-                            {report.history.previousIp
-                              ? `上次 ${maskIp(report.history.previousIp, hideIp)}`
-                              : '刷新后自动对比'}
-                          </div>
-                        </div>
-                      </div>
+            {error ? (
+              <div className="error-panel" role="alert">
+                <TriangleAlert />
+                <div>
+                  <h2>这次没能完成检测</h2>
+                  <p>{error}</p>
+                  <span>
+                    请检查网络连接后重试，之前的结果不会替代本次检测。
+                  </span>
+                </div>
+                <button className="button primary" onClick={runScan}>
+                  <RefreshCw />
+                  重新尝试
+                </button>
+              </div>
+            ) : (
+              <div className="hero-grid">
+                <article className="environment-hero">
+                  <div className="hero-copy">
+                    <span className="hero-eyebrow">
+                      <span className="live-dot" />
+                      ENVIRONMENT STATUS
+                    </span>
+                    <h2>
+                      {loading
+                        ? "正在认识你的网络"
+                        : visibleReport!.assessment.score >= 75
+                          ? "连接世界，心中有数。"
+                          : "发现问题，离畅通更近。"}
+                    </h2>
+                    <p>
+                      {loading
+                        ? stageLabels[stage - 1] + "，即将为你呈现完整报告。"
+                        : visibleReport!.assessment.gradeSummary}
+                    </p>
+                    <div className="hero-tags">
+                      <span>
+                        <ShieldCheck />
+                        {loading
+                          ? "多维度环境检测"
+                          : visibleReport!.assessment.gradeLabel}
+                      </span>
+                      <span>
+                        <Activity />
+                        {loading
+                          ? "探针并发运行中"
+                          : `${issueCount} 项需要关注`}
+                      </span>
                     </div>
-
-                    {/* Right: Tactile 3D Instrument Gauge + Segmented Scale */}
-                    <HeroInstrumentTilt className="flex flex-col justify-between gap-5 bg-[var(--bg-inner)]/78 p-5 sm:p-6">
-                      <div className="flex items-center gap-5">
-                        <ScoreRing score={report.assessment.score} grade={report.assessment.grade} />
-
-                        <div className="min-w-0 space-y-2">
-                          <div className="flex flex-wrap items-center gap-1.5">
-                            <span
-                              className={`inline-flex items-center gap-1.5 rounded-md border px-2 py-0.5 font-mono text-xs font-semibold ${gradeStyle.badge}`}
-                            >
-                              <span className={`h-1.5 w-1.5 rounded-full ${gradeStyle.dot}`} />
-                              {report.assessment.gradeLabel}
-                            </span>
-                            <span className="rounded-md border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-2 py-0.5 font-mono text-[11px] text-[var(--text-secondary)]">
-                              {report.assessment.ipTierLabel}
-                            </span>
-                          </div>
-                          <p className="text-xs leading-relaxed text-[var(--text-secondary)]">
-                            {report.assessment.gradeSummary}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div>
-                        <div className="mb-1.5 flex items-center justify-between font-mono text-[10px] text-[var(--text-muted)]">
-                          <span>风控档位标尺</span>
-                          <span>{report.scannedAt}</span>
-                        </div>
-                        <div className="grid grid-cols-5 gap-1">
-                          {ladderOrder.map((g) => {
-                            const active = g === report.assessment.grade;
-                            return (
-                              <div
-                                key={g}
-                                className={`flex flex-col items-center rounded-lg border py-1.5 text-center transition ${
-                                  active
-                                    ? 'border-transparent bg-[var(--accent)] font-semibold text-[var(--accent-fg)]'
-                                    : 'border-[var(--border-soft)] bg-[var(--bg-surface)] text-[var(--text-muted)] opacity-65'
-                                }`}
-                              >
-                                <span className="font-mono text-xs font-bold">{g}</span>
-                                <span className="text-[9px]">
-                                  {g === 'S'
-                                    ? '极净'
-                                    : g === 'A'
-                                      ? '优质'
-                                      : g === 'B'
-                                        ? '轻度'
-                                        : g === 'C'
-                                          ? '高危'
-                                          : '受限'}
-                                </span>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    </HeroInstrumentTilt>
-                  </div>
-
-                  {/* 5 Category Meters Strip */}
-                  <div className="grid grid-cols-2 gap-4 border-t border-[var(--border-subtle)] px-5 py-4 sm:grid-cols-5 sm:px-6">
-                    {report.assessment.categories.map((cat) => {
-                      const pct = Math.round((cat.score / cat.maxScore) * 100);
-                      const statusDot =
-                        cat.status === 'danger'
-                          ? 'bg-rose-500'
-                          : cat.status === 'warn'
-                            ? 'bg-amber-500'
-                            : 'bg-emerald-500';
-                      const barFill =
-                        cat.status === 'danger'
-                          ? 'bg-rose-500/80'
-                          : cat.status === 'warn'
-                            ? 'bg-[var(--text-secondary)]'
-                            : 'bg-[var(--text-primary)]';
-
-                      return (
-                        <div key={cat.key} className="min-w-0">
-                          <div className="flex items-center justify-between text-[11px]">
-                            <span className="flex min-w-0 items-center gap-1.5 truncate text-[var(--text-muted)]">
-                              <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${statusDot}`} />
-                              <span className="truncate">{cat.label}</span>
-                            </span>
-                            <span className="shrink-0 font-mono font-semibold text-[var(--text-primary)]">
-                              {cat.score}/{cat.maxScore}
-                            </span>
-                          </div>
-                          <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-[var(--ring-track)]">
-                            <motion.div
-                              initial={{ width: 0 }}
-                              animate={{ width: `${pct}%` }}
-                              transition={{ type: 'spring', stiffness: 90, damping: 18 }}
-                              className={`h-full rounded-full ${barFill}`}
-                            />
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  {/* Inline Agent Auto-Fix Prompt Strip */}
-                  <div className="flex flex-col gap-3 border-t border-[var(--border-soft)] bg-[var(--bg-inner)]/75 px-5 py-3.5 sm:flex-row sm:items-center sm:justify-between sm:px-6">
-                    <div className="flex items-start gap-2.5 sm:items-center">
-                      <Bot className="mt-0.5 h-4 w-4 shrink-0 text-[var(--text-primary)] sm:mt-0" />
-                      <p className="text-xs leading-relaxed text-[var(--text-secondary)]">
-                        <strong className="font-semibold text-[var(--text-primary)]">
-                          复制给 AI Agent 自动优化：
-                        </strong>
-                        将该诊断指令发给 Claude Code、Codex 或{' '}
-                        <span className="font-mono font-semibold text-[var(--text-primary)]">
-                          CC Haha
-                        </span>
-                        ，即可协同调整浏览器语言与系统底层配置。
-                      </p>
-                    </div>
-
-                    <MagneticButton
-                      type="button"
-                      onClick={handleCopyAgentPrompt}
-                      className="inline-flex shrink-0 items-center justify-center gap-1.5 rounded-lg bg-[var(--accent)] px-3.5 py-2 font-mono text-xs font-semibold text-[var(--accent-fg)] transition hover:opacity-90"
+                    <a
+                      href={loading ? "#connectivity" : "#audit"}
+                      className="hero-link"
                     >
-                      {promptCopied ? (
+                      {loading ? "检测结果将在下方更新" : "查看完整检测报告"}
+                      <ArrowRight />
+                    </a>
+                  </div>
+                  <ConnectionMap
+                    loading={loading}
+                    score={visibleReport?.assessment.score}
+                  />
+                  <div className="hero-footer">
+                    <span>
+                      <LockKeyhole />
+                      公网 IP 默认隐藏
+                    </span>
+                    <span>
+                      你的 Claude 网络环境检查站 <ArrowUpRight />
+                    </span>
+                  </div>
+                </article>
+                <article className="score-card">
+                  <div className="score-card-heading">
+                    <span>环境健康评分</span>
+                    <span className="score-label">ENV SCORE</span>
+                  </div>
+                  <div className="score-display">
+                    <svg viewBox="0 0 180 115" aria-hidden="true">
+                      <path
+                        d="M22 99 A72 72 0 1 1 158 99"
+                        className="score-track"
+                      />
+                      <path
+                        d="M22 99 A72 72 0 1 1 158 99"
+                        className={`score-progress ${loading ? "scanning" : ""}`}
+                        pathLength="100"
+                        strokeDasharray={`${visibleReport?.assessment.score ?? 30} 100`}
+                      />
+                    </svg>
+                    <div>
+                      <strong>{visibleReport?.assessment.score ?? "–"}</strong>
+                      <span>/ 100</span>
+                    </div>
+                  </div>
+                  <div className="score-caption">
+                    {loading ? (
+                      <>
+                        <LoaderCircle className="spin" />
+                        正在分析环境
+                      </>
+                    ) : (
+                      <>
+                        <span
+                          className={`grade grade-${visibleReport!.assessment.grade}`}
+                        >
+                          {visibleReport!.assessment.grade}
+                        </span>
+                        {visibleReport!.assessment.gradeLabel}
+                      </>
+                    )}
+                  </div>
+                  <div className="score-ladder">
+                    {["F", "C", "B", "A", "S"].map((grade) => (
+                      <span
+                        key={grade}
+                        className={
+                          visibleReport?.assessment.grade === grade
+                            ? "selected"
+                            : ""
+                        }
+                      >
+                        {grade}
+                      </span>
+                    ))}
+                  </div>
+                  <p>基于 5 个维度综合评估 · 仅供排查参考</p>
+                </article>
+              </div>
+            )}
+
+            {!error && (
+              <div className="summary-grid">
+                <article className="summary-card">
+                  <span className="summary-icon">
+                    <Globe2 />
+                  </span>
+                  <div>
+                    <span className="summary-label">当前网络出口</span>
+                    <strong>
+                      {visibleReport ? (
+                        `${visibleReport.server.geo.country} · ${visibleReport.server.geo.city || visibleReport.server.edge.colo}`
+                      ) : (
+                        <span className="skeleton-line" />
+                      )}
+                    </strong>
+                    <span className="summary-foot">
+                      {visibleReport
+                        ? ipButton(visibleReport.server.ip)
+                        : "正在识别出口位置"}
+                    </span>
+                  </div>
+                  <button
+                    className="icon-button summary-action"
+                    aria-label={hideIp ? "显示 IP" : "隐藏 IP"}
+                    onClick={() => setHideIp((value) => !value)}
+                  >
+                    {hideIp ? <Eye /> : <EyeOff />}
+                  </button>
+                </article>
+                <article className="summary-card">
+                  <span className="summary-icon warm">
+                    <Fingerprint />
+                  </span>
+                  <div>
+                    <span className="summary-label">IP 网络属性</span>
+                    <strong>
+                      {visibleReport ? (
+                        visibleReport.assessment.ipTierLabel
+                      ) : (
+                        <span className="skeleton-line" />
+                      )}
+                    </strong>
+                    <span className="summary-foot">
+                      {visibleReport
+                        ? `AS${visibleReport.server.network.asn ?? "–"} · ${visibleReport.server.network.asOrg || "机构未知"}`
+                        : "正在查询多源 IP 情报"}
+                    </span>
+                  </div>
+                </article>
+                <article className="summary-card">
+                  <span className="summary-icon blue">
+                    <Wifi />
+                  </span>
+                  <div>
+                    <span className="summary-label">Claude 站点响应</span>
+                    <strong>
+                      {visibleReport ? (
                         <>
-                          <Check className="h-3.5 w-3.5 text-emerald-500" />
-                          <span>已复制，去粘贴给 Agent 吧</span>
+                          {
+                            visibleReport.anthropicEndpoints.filter(
+                              (ep) => ep.reachable,
+                            ).length
+                          }
+                          <span className="subtle">
+                            {" "}
+                            / {visibleReport.anthropicEndpoints.length}{" "}
+                            个站点可达
+                          </span>
                         </>
                       ) : (
-                        <>
-                          <Copy className="h-3.5 w-3.5" />
-                          <span>复制 Agent 修复 Prompt</span>
-                        </>
+                        <span className="skeleton-line" />
                       )}
-                    </MagneticButton>
+                    </strong>
+                    <span className="summary-foot">
+                      {visibleReport
+                        ? "Web / API / Console 独立探测"
+                        : "正在检查三个独立端点"}
+                    </span>
                   </div>
-                  </SpotlightSurface>
-                </motion.section>
+                </article>
+              </div>
+            )}
+            {loading && (
+              <div className="scan-progress" role="status">
+                <LoaderCircle className="spin" />
+                <span>{stageLabels[stage - 1]}</span>
+                <div>
+                  {[1, 2, 3].map((step) => (
+                    <i key={step} className={step <= stage ? "complete" : ""} />
+                  ))}
+                </div>
+                <code>0{stage} / 03</code>
+              </div>
+            )}
+            {visibleReport && (
+              <div className="category-strip">
+                {visibleReport.assessment.categories.map((category) => (
+                  <div key={category.key}>
+                    <span>{category.label}</span>
+                    <strong>
+                      {category.score}
+                      <small>/{category.maxScore}</small>
+                    </strong>
+                    <div className="category-track">
+                      <i
+                        className={category.status}
+                        style={{
+                          width: `${(category.score / category.maxScore) * 100}%`,
+                        }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
 
-                {/* Unified 2x2 Core Telemetry Matrix */}
-                <motion.section variants={CASCADE_ITEM}>
-                  <SpotlightSurface>
-                    <div className="grid grid-cols-1 divide-y divide-[var(--border-soft)] md:grid-cols-2 md:divide-y-0">
-                  {/* Quadrant 1: IP & Intelligence */}
-                  <div className="min-w-0 p-5 md:border-b md:border-r md:border-[var(--border-soft)]">
-                    <div className="mb-3.5 flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2 text-sm font-semibold text-[var(--text-primary)]">
-                        <Globe className="h-4 w-4 text-[var(--text-muted)]" />
-                        <span>IP 属性与安全</span>
-                      </div>
-                      <span className="font-mono text-[10px] text-[var(--text-muted)]">
-                        {report.server.network.intel.source}
+          <section id="connectivity">
+            <SectionTitle
+              number="01"
+              title="先看看，Claude 能连上吗？"
+              description="三个端点，三条独立的连接路径。"
+            >
+              <span className="section-meta">
+                <span className="live-dot" />
+                浏览器实时探测
+              </span>
+            </SectionTitle>
+            <div className="endpoint-grid">
+              {[
+                {
+                  id: "claude_web",
+                  domain: "claude.ai",
+                  name: "Claude 网页",
+                  desc: "日常对话与网页访问",
+                  icon: ClaudeFlowerLogo,
+                  style: "terracotta",
+                },
+                {
+                  id: "api_anthropic",
+                  domain: "api.anthropic.com",
+                  name: "Claude API",
+                  desc: "Claude Code 与 API 请求",
+                  icon: Terminal,
+                  style: "mint",
+                },
+                {
+                  id: "platform_console",
+                  domain: "platform.claude.com",
+                  name: "开发者控制台",
+                  desc: "账号授权与 Console",
+                  icon: LayoutDashboard,
+                  style: "lavender",
+                },
+              ].map((item) => {
+                const endpoint = visibleReport?.anthropicEndpoints.find(
+                  (ep) => ep.id === item.id,
+                );
+                const Icon = item.icon;
+                return (
+                  <article className="endpoint-card" key={item.id}>
+                    <div className="endpoint-top">
+                      <span className={`endpoint-icon ${item.style}`}>
+                        <Icon />
                       </span>
+                      <Badge
+                        tone={
+                          endpoint
+                            ? endpoint.reachable
+                              ? "pass"
+                              : "warn"
+                            : "neutral"
+                        }
+                      >
+                        {endpoint
+                          ? endpoint.reachable
+                            ? "可达"
+                            : "未响应"
+                          : loading
+                            ? "检测中"
+                            : "待检测"}
+                      </Badge>
                     </div>
-
-                    <dl className="space-y-2 text-xs">
-                      <div className="flex items-center justify-between gap-2">
-                        <dt className="text-[var(--text-muted)]">网络性质</dt>
-                        <dd className="truncate font-mono font-semibold text-[var(--text-primary)]">
-                          {report.assessment.ipTierLabel}
-                        </dd>
-                      </div>
-                      <div className="flex items-center justify-between gap-2">
-                        <dt className="text-[var(--text-muted)]">ISP / 机构</dt>
-                        <dd className="min-w-0 truncate text-right font-mono text-[var(--text-primary)]">
-                          {report.server.network.intel.companyName ||
-                            report.server.network.asOrg ||
-                            '未知'}
-                        </dd>
-                      </div>
-                      <div className="flex items-center justify-between gap-2">
-                        <dt className="text-[var(--text-muted)]">ASN</dt>
-                        <dd className="font-mono text-[var(--text-primary)]">
-                          AS{report.server.network.asn ?? '-'}
-                        </dd>
-                      </div>
-                      <div className="flex items-center justify-between gap-2">
-                        <dt className="text-[var(--text-muted)]">IPv6</dt>
-                        <dd
-                          onClick={() => setHideIp((v) => !v)}
-                          className="cursor-pointer truncate font-mono text-[var(--text-primary)]"
-                        >
-                          {report.dualStack.ipv6 ? maskIp(report.dualStack.ipv6, hideIp) : '已关闭 (安全)'}
-                        </dd>
-                      </div>
-                    </dl>
-
-                    <div className="mt-3.5 flex flex-wrap gap-1.5 border-t border-[var(--border-soft)] pt-3">
-                      <BoolTag label="机房" value={report.server.network.intel.isDatacenter} />
-                      <BoolTag label="VPN" value={report.server.network.intel.isVpn} />
-                      <BoolTag label="Proxy" value={report.server.network.intel.isProxy} />
-                      <BoolTag label="Tor" value={report.server.network.intel.isTor} />
-                      <BoolTag label="滥用库" value={report.server.network.intel.isAbuser} />
-                    </div>
-                  </div>
-
-                  {/* Quadrant 2: DNS Leak Detection */}
-                  <div className="min-w-0 p-5 md:border-b md:border-[var(--border-soft)]">
-                    <div className="mb-3.5 flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2 text-sm font-semibold text-[var(--text-primary)]">
-                        <Server className="h-4 w-4 text-[var(--text-muted)]" />
-                        <span>DNS 泄露检测</span>
-                      </div>
-                      <span className="inline-flex items-center gap-1.5 rounded-md border border-[var(--border-soft)] bg-[var(--bg-inner)] px-2 py-0.5 font-mono text-[10px] font-medium text-[var(--text-primary)]">
-                        <span
-                          className={`h-1.5 w-1.5 rounded-full ${
-                            report.dnsLeak.status === 'leaked'
-                              ? 'bg-rose-500'
-                              : report.dnsLeak.status === 'safe'
-                                ? 'bg-emerald-500'
-                                : 'bg-zinc-400'
-                          }`}
-                        />
-                        {report.dnsLeak.status === 'leaked'
-                          ? '存在泄露'
-                          : report.dnsLeak.status === 'safe'
-                            ? '正常'
-                            : '未知'}
+                    <h3>{item.name}</h3>
+                    <span className="endpoint-domain">{item.domain}</span>
+                    <div
+                      className={`endpoint-path ${endpoint?.reachable ? "connected" : ""}`}
+                      aria-hidden="true"
+                    >
+                      <span>
+                        <Globe2 />
                       </span>
-                    </div>
-
-                    <dl className="space-y-2 text-xs">
-                      <div className="flex items-center justify-between gap-2">
-                        <dt className="text-[var(--text-muted)]">DNS 出口</dt>
-                        <dd
-                          onClick={() => setHideIp((v) => !v)}
-                          className="cursor-pointer truncate font-mono text-[var(--text-primary)]"
-                        >
-                          {maskIp(report.dnsLeak.dnsIp, hideIp)}
-                        </dd>
-                      </div>
-                      <div className="flex items-center justify-between gap-2">
-                        <dt className="text-[var(--text-muted)]">归属地</dt>
-                        <dd
-                          className={`truncate font-mono ${
-                            report.dnsLeak.status === 'leaked'
-                              ? 'text-rose-500'
-                              : 'text-[var(--text-primary)]'
-                          }`}
-                        >
-                          {report.dnsLeak.dnsGeo || '-'}
-                        </dd>
-                      </div>
-                      <div className="flex items-center justify-between gap-2">
-                        <dt className="text-[var(--text-muted)]">EDNS 网段</dt>
-                        <dd className="truncate font-mono text-[var(--text-secondary)]">
-                          {maskIp(report.dnsLeak.ednsIp, hideIp)}
-                        </dd>
-                      </div>
-                    </dl>
-                  </div>
-
-                  {/* Quadrant 3: WebRTC UDP */}
-                  <div className="min-w-0 p-5 md:border-r md:border-[var(--border-soft)]">
-                    <div className="mb-3.5 flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2 text-sm font-semibold text-[var(--text-primary)]">
-                        <Network className="h-4 w-4 text-[var(--text-muted)]" />
-                        <span>WebRTC UDP</span>
-                      </div>
-                      <span className="inline-flex items-center gap-1.5 rounded-md border border-[var(--border-soft)] bg-[var(--bg-inner)] px-2 py-0.5 font-mono text-[10px] font-medium text-[var(--text-primary)]">
-                        <span
-                          className={`h-1.5 w-1.5 rounded-full ${
-                            report.webrtc.status === 'leaked'
-                              ? 'bg-rose-500'
-                              : report.webrtc.status === 'unknown'
-                                ? 'bg-zinc-400'
-                                : 'bg-emerald-500'
-                          }`}
-                        />
-                        {report.webrtc.status === 'leaked'
-                          ? '异常泄露'
-                          : report.webrtc.status === 'unknown'
-                            ? '未知'
-                            : report.webrtc.status === 'matched'
-                              ? '与代理一致'
-                              : '已屏蔽'}
-                      </span>
-                    </div>
-
-                    <dl className="space-y-2 text-xs">
-                      <div className="flex items-center justify-between gap-2">
-                        <dt className="text-[var(--text-muted)]">UDP 出口</dt>
-                        <dd
-                          onClick={() => setHideIp((v) => !v)}
-                          className={`cursor-pointer truncate font-mono ${
-                            report.webrtc.status === 'leaked'
-                              ? 'text-rose-500'
-                              : 'text-[var(--text-primary)]'
-                          }`}
-                        >
-                          {report.webrtc.publicIps.length
-                            ? report.webrtc.publicIps.map((i) => maskIp(i, hideIp)).join(', ')
-                            : report.webrtc.status === 'unknown'
-                              ? '未知'
-                              : '无公网暴露'}
-                        </dd>
-                      </div>
-                      <div className="flex items-center justify-between gap-2">
-                        <dt className="text-[var(--text-muted)]">归属地</dt>
-                        <dd className="truncate text-[var(--text-secondary)]">
-                          {report.webrtc.ipDetails.length > 0
-                            ? report.webrtc.ipDetails
-                                .map((d) => `${d.country || '-'}${d.city ? `·${d.city}` : ''}`)
-                                .join(', ')
-                            : '-'}
-                        </dd>
-                      </div>
-                      <div className="flex items-center justify-between gap-2">
-                        <dt className="text-[var(--text-muted)]">运营商</dt>
-                        <dd className="truncate font-mono text-[var(--text-secondary)]">
-                          {report.webrtc.ipDetails.length > 0
-                            ? report.webrtc.ipDetails.map((d) => d.isp || '-').join(', ')
-                            : '-'}
-                        </dd>
-                      </div>
-                    </dl>
-                  </div>
-
-                  {/* Quadrant 4: Reachability & Fingerprint */}
-                  <div className="min-w-0 p-5">
-                    <div className="mb-3.5 flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2 text-sm font-semibold text-[var(--text-primary)]">
-                        {report.browser.isMobile ? (
-                          <Smartphone className="h-4 w-4 text-[var(--text-muted)]" />
+                      <i />
+                      <span>
+                        {endpoint ? (
+                          endpoint.reachable ? (
+                            <Check />
+                          ) : (
+                            <TriangleAlert />
+                          )
                         ) : (
-                          <Laptop className="h-4 w-4 text-[var(--text-muted)]" />
+                          <Radio />
                         )}
-                        <span>生态可达与指纹</span>
-                      </div>
-                      <span className="font-mono text-[10px] text-[var(--text-muted)]">
-                        RTT / Locale
+                      </span>
+                      <i />
+                      <span>
+                        <Icon />
                       </span>
                     </div>
-
-                    <div className="space-y-2 text-xs">
-                      {report.splitTunnel.endpoints.map((ep) => (
-                        <div key={ep.name} className="flex items-center justify-between gap-2">
-                          <span className="truncate text-[var(--text-secondary)]">{ep.name}</span>
-                          <span className="inline-flex shrink-0 items-center gap-1.5 font-mono text-[var(--text-primary)]">
-                            <span
-                              className={`h-1.5 w-1.5 rounded-full ${
-                                !ep.reachable
-                                  ? 'bg-zinc-400'
-                                  : (ep.rttMs ?? 999) < 200
-                                    ? 'bg-emerald-500'
-                                    : 'bg-amber-500'
-                              }`}
-                            />
-                            {ep.reachable && ep.rttMs !== null ? `${ep.rttMs} ms` : '不可达'}
-                          </span>
-                        </div>
-                      ))}
-                      <div className="flex items-center justify-between gap-2 border-t border-[var(--border-soft)] pt-2">
-                        <span className="text-[var(--text-muted)]">时区 / 语言</span>
-                        <span
-                          className={`truncate font-mono ${
-                            report.server.geo.timezone &&
-                            report.browser.timezone !== report.server.geo.timezone
-                              ? 'text-rose-500'
-                              : 'text-[var(--text-primary)]'
-                          }`}
-                        >
-                          {report.browser.timezone} ({report.browser.language})
-                        </span>
-                      </div>
+                    <div className="endpoint-bottom">
+                      <span>{item.desc}</span>
+                      <strong>
+                        {endpoint?.rttMs != null ? (
+                          <>
+                            {endpoint.rttMs}
+                            <small>ms</small>
+                          </>
+                        ) : (
+                          "—"
+                        )}
+                      </strong>
                     </div>
-                  </div>
-                    </div>
-                  </SpotlightSurface>
-                </motion.section>
-
-                {/* Anthropic Multi-Endpoint Reachability & WAF Strategy */}
-                <motion.section variants={CASCADE_ITEM}>
-                  <AnthropicEndpointsSection
-                    endpoints={report.anthropicEndpoints}
-                    isProxyOrDatacenter={Boolean(
-                      report.server.network.intel.isDatacenter ||
-                        report.server.network.intel.isProxy ||
-                        report.server.network.intel.isVpn ||
-                        report.server.network.heuristicType === 'datacenter'
+                    {endpoint && (
+                      <p className="endpoint-note">{endpoint.note}</p>
                     )}
-                  />
-                </motion.section>
+                  </article>
+                );
+              })}
+            </div>
+            <p className="section-footnote">
+              <CircleHelp />
+              结果表示浏览器探针是否收到响应，不代表账号登录或 API 鉴权成功。
+            </p>
+          </section>
 
-                {/* Claude Code CLI Anti-Risk Environment Recommendations */}
-                <motion.section variants={CASCADE_ITEM}>
-                  <ClaudeCliGuardSection items={report.assessment.cliRecommendations} />
-                </motion.section>
+          <section id="diagnostics">
+            <SectionTitle
+              number="02"
+              title="网络的细节，也值得看见"
+              description="从出口到浏览器，找出连接路径中不一致的地方。"
+            >
+              <button
+                className="text-button"
+                onClick={() => setHideIp((value) => !value)}
+              >
+                {hideIp ? <Eye /> : <EyeOff />}
+                {hideIp ? "显示 IP 地址" : "隐藏 IP 地址"}
+              </button>
+            </SectionTitle>
+            <div className="diagnostics-grid">
+              <DiagnosticCard
+                icon={<Network />}
+                title="DNS 泄露"
+                badge={
+                  <Badge
+                    tone={
+                      visibleReport?.dnsLeak.status === "leaked"
+                        ? "danger"
+                        : visibleReport?.dnsLeak.status === "safe"
+                          ? "pass"
+                          : "neutral"
+                    }
+                  >
+                    {visibleReport
+                      ? visibleReport.dnsLeak.status === "leaked"
+                        ? "存在泄露"
+                        : visibleReport.dnsLeak.status === "safe"
+                          ? "未发现泄露"
+                          : "未知"
+                      : "待检测"}
+                  </Badge>
+                }
+              >
+                <DetailRows
+                  rows={[
+                    [
+                      "DNS 出口",
+                      visibleReport
+                        ? ipButton(visibleReport.dnsLeak.dnsIp)
+                        : "—",
+                    ],
+                    ["解析归属", visibleReport?.dnsLeak.dnsGeo || "—"],
+                    [
+                      "EDNS 网段",
+                      visibleReport
+                        ? ipButton(visibleReport.dnsLeak.ednsIp)
+                        : "—",
+                    ],
+                  ]}
+                />
+                <div className="card-tip">检查域名解析是否绕过代理出口。</div>
+              </DiagnosticCard>
+              <DiagnosticCard
+                icon={<AudioLines />}
+                title="WebRTC / UDP"
+                badge={
+                  <Badge
+                    tone={
+                      visibleReport?.webrtc.status === "leaked"
+                        ? "danger"
+                        : visibleReport &&
+                            visibleReport.webrtc.status !== "unknown"
+                          ? "pass"
+                          : "neutral"
+                    }
+                  >
+                    {visibleReport
+                      ? {
+                          leaked: "存在泄露",
+                          matched: "出口一致",
+                          protected: "未暴露公网 IP",
+                          unknown: "未知",
+                        }[visibleReport.webrtc.status]
+                      : "待检测"}
+                  </Badge>
+                }
+              >
+                <DetailRows
+                  rows={[
+                    [
+                      "UDP 出口",
+                      visibleReport?.webrtc.publicIps.length ? (
+                        <>
+                          {visibleReport.webrtc.publicIps.map((ip) => (
+                            <span key={ip}>{ipButton(ip)} </span>
+                          ))}
+                        </>
+                      ) : visibleReport ? (
+                        "未检测到公网地址"
+                      ) : (
+                        "—"
+                      ),
+                    ],
+                    [
+                      "出口归属",
+                      visibleReport?.webrtc.ipDetails
+                        .map((item) =>
+                          [item.country, item.city].filter(Boolean).join(" · "),
+                        )
+                        .filter(Boolean)
+                        .join(", ") || "—",
+                    ],
+                    [
+                      "ICE 候选",
+                      visibleReport
+                        ? `${visibleReport.webrtc.candidateCount} 个`
+                        : "—",
+                    ],
+                  ]}
+                />
+                <div className="card-tip">
+                  检查实时通信是否暴露额外公网地址。
+                </div>
+              </DiagnosticCard>
+              <DiagnosticCard
+                icon={<Globe2 />}
+                title="出口与网络属性"
+                badge={<span className="card-micro">IP INTELLIGENCE</span>}
+              >
+                <DetailRows
+                  rows={[
+                    ["网络机构", visibleReport?.server.network.asOrg || "—"],
+                    [
+                      "国内直连",
+                      visibleReport
+                        ? ipButton(visibleReport.domesticIp.ip)
+                        : "—",
+                    ],
+                    [
+                      "IPv6 地址",
+                      visibleReport
+                        ? ipButton(visibleReport.dualStack.ipv6)
+                        : "—",
+                    ],
+                    [
+                      "出口稳定性",
+                      visibleReport
+                        ? {
+                            first: "首次检测",
+                            same: "与上次一致",
+                            changed: "出口已变化",
+                          }[visibleReport.history.status]
+                        : "—",
+                    ],
+                  ]}
+                />
+                <div className="intel-flags">
+                  {(
+                    [
+                      "isDatacenter",
+                      "isVpn",
+                      "isProxy",
+                      "isTor",
+                      "isAbuser",
+                    ] as const
+                  ).map((key, i) => (
+                    <span
+                      key={key}
+                      className={
+                        visibleReport?.server.network.intel[key]
+                          ? "flagged"
+                          : ""
+                      }
+                    >
+                      {["机房", "VPN", "Proxy", "Tor", "滥用库"][i]}
+                      <b>
+                        {visibleReport
+                          ? visibleReport.server.network.intel[key] === null
+                            ? "未知"
+                            : visibleReport.server.network.intel[key]
+                              ? "是"
+                              : "否"
+                          : "—"}
+                      </b>
+                    </span>
+                  ))}
+                </div>
+              </DiagnosticCard>
+              <DiagnosticCard
+                icon={<Fingerprint />}
+                title="浏览器与分流"
+                badge={<span className="card-micro">ENVIRONMENT</span>}
+              >
+                <DetailRows
+                  rows={[
+                    ["系统时区", visibleReport?.browser.timezone || "—"],
+                    ["IP 时区", visibleReport?.server.geo.timezone || "—"],
+                    ["浏览器语言", visibleReport?.browser.language || "—"],
+                    ["设备平台", visibleReport?.browser.platform || "—"],
+                  ]}
+                />
+                <div className="card-tip">
+                  {visibleReport?.splitTunnel.summary ||
+                    "检查本机环境与网络出口的一致性。"}
+                </div>
+              </DiagnosticCard>
+            </div>
+          </section>
 
-                {/* Audit Findings & Actionable Remediation */}
-                <motion.section
-                  variants={CASCADE_ITEM}
-                  className="grid grid-cols-1 gap-5 lg:grid-cols-5"
+          <section id="recommendations">
+            <SectionTitle
+              number="03"
+              title="下一步，把问题交给 Agent"
+              description="无需猜测配置，让本机 AI 从这次检测结果开始排查。"
+            />
+            <div className="action-grid">
+              <article className="agent-card">
+                <span className="agent-icon">
+                  <Sparkles />
+                </span>
+                <span className="mini-label">FROM DIAGNOSIS TO ACTION</span>
+                <h3>检测之后，不止于报告。</h3>
+                <p>
+                  复制包含本轮网络观测和排查任务的 Prompt，粘贴到这台电脑上的
+                  Claude Code 或 Codex。
+                </p>
+                <button
+                  className="button primary"
+                  disabled={!ready}
+                  onClick={copyPrompt}
                 >
-                  <SpotlightSurface className="min-w-0 lg:col-span-3">
-                    <div className="border-b border-[var(--border-subtle)] px-5 py-3.5">
-                      <h2 className="text-sm font-semibold tracking-tight text-[var(--text-primary)]">
-                        风控审计明细
-                      </h2>
-                    </div>
-
-                    <div className="group/list divide-y divide-[var(--border-soft)]">
-                      {report.assessment.findings.map((item) => {
-                        const cfg = SEVERITY_CONFIG[item.severity];
-                        const Icon = cfg.icon;
-                        return (
-                          <div
-                            key={item.id}
-                            className="relative px-5 py-3.5 transition-[opacity,background-color] duration-200 group-hover/list:opacity-55 hover:!opacity-100 hover:bg-[var(--bg-inner)]/35"
-                          >
-                            <div
-                              className={`absolute inset-y-3 left-0 w-[2px] rounded-r ${cfg.bar}`}
-                            />
-                            <div className="flex flex-wrap items-center justify-between gap-2">
-                              <div className="flex min-w-0 items-center gap-2">
-                                <Icon className={`h-4 w-4 shrink-0 ${cfg.color}`} />
-                                <span className="text-sm font-medium text-[var(--text-primary)]">
-                                  {item.title}
-                                </span>
-                              </div>
-                              <span className="shrink-0 font-mono text-xs font-semibold text-[var(--text-secondary)]">
-                                {item.impact}
-                              </span>
-                            </div>
-                            <p className="mt-1 break-all pl-6 text-xs leading-relaxed text-[var(--text-secondary)] sm:break-words">
-                              {item.detail}
-                            </p>
-                            {item.remediation && (
-                              <p className="mt-1.5 pl-6 text-xs leading-relaxed text-[var(--text-primary)]">
-                                <span className="font-semibold text-[var(--text-primary)]">建议：</span>
-                                {item.remediation}
-                              </p>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </SpotlightSurface>
-
-                  <SpotlightSurface className="min-w-0 lg:col-span-2">
-                    <div className="border-b border-[var(--border-subtle)] px-5 py-3.5">
-                      <h2 className="text-sm font-semibold tracking-tight text-[var(--text-primary)]">
-                        修复与防封建议
-                      </h2>
-                    </div>
-
-                    <ol className="group/list divide-y divide-[var(--border-soft)] text-xs leading-relaxed text-[var(--text-secondary)]">
-                      {report.assessment.recommendations.map((rec, idx) => (
-                        <li
-                          key={idx}
-                          className="flex gap-3 px-5 py-3.5 transition-[opacity,background-color] duration-200 group-hover/list:opacity-55 hover:!opacity-100 hover:bg-[var(--bg-inner)]/35"
-                        >
-                          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md border border-[var(--border-subtle)] bg-[var(--bg-inner)] font-mono text-[11px] font-bold text-[var(--text-primary)]">
-                            {idx + 1}
-                          </span>
-                          <span className="min-w-0 break-words">{rec}</span>
-                        </li>
-                      ))}
-                    </ol>
-                  </SpotlightSurface>
-                </motion.section>
-              </motion.div>
+                  {copied === "prompt" ? <CheckCheck /> : <Bot />}
+                  {copied === "prompt"
+                    ? "已复制，去交给 Agent 吧"
+                    : "复制 Agent 修复 Prompt"}
+                  <ArrowUpRight />
+                </button>
+                <span className="agent-privacy">
+                  <CircleHelp />
+                  Prompt 包含完整 IP，请仅交给信任的本机 Agent。
+                </span>
+              </article>
+              <article className="terminal-card">
+                <div className="terminal-top">
+                  <span>
+                    <i />
+                    <i />
+                    <i />
+                  </span>
+                  <span>claude-code / environment</span>
+                  <button
+                    className="icon-button"
+                    aria-label="复制 CLI 环境变量"
+                    disabled={!ready}
+                    onClick={() =>
+                      visibleReport &&
+                      void copyText(
+                        visibleReport.assessment.cliRecommendations
+                          .map(
+                            (item) => `export ${item.envKey}=${item.envValue}`,
+                          )
+                          .join("\n"),
+                        "shell",
+                      )
+                    }
+                  >
+                    {copied === "shell" ? <Check /> : <Copy />}
+                  </button>
+                </div>
+                <div className="terminal-body">
+                  <span className="terminal-comment">
+                    # 按需减少非必要流量与遥测
+                  </span>
+                  {(
+                    visibleReport?.assessment.cliRecommendations || [
+                      {
+                        envKey: "CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC",
+                        envValue: "1",
+                      },
+                      { envKey: "DISABLE_TELEMETRY", envValue: "1" },
+                      { envKey: "DISABLE_ERROR_REPORTING", envValue: "1" },
+                    ]
+                  ).map((item) => (
+                    <code key={item.envKey}>
+                      <span>export</span> {item.envKey}
+                      <b>={item.envValue}</b>
+                    </code>
+                  ))}
+                  <span className="terminal-cursor">
+                    ❯ <i />
+                  </span>
+                </div>
+                <p>
+                  <ShieldCheck />
+                  配置只影响 CLI 行为，不能替代网络或账号排查。
+                </p>
+              </article>
+            </div>
+            {visibleReport && (
+              <div className="recommendation-list">
+                {visibleReport.assessment.recommendations.map((item, i) => (
+                  <div key={i}>
+                    <span>{String(i + 1).padStart(2, "0")}</span>
+                    <p>{redact(item)}</p>
+                    <ArrowRight />
+                  </div>
+                ))}
+              </div>
             )}
-          </main>
+          </section>
 
-          <EcosystemSidebar
-            isRestrictedOrHighRisk={Boolean(
-              report && (report.assessment.score < 75 || report.server.geo.regionPolicy === 'blocked')
+          <section id="audit">
+            <SectionTitle
+              number="04"
+              title="每一项判断，都有依据"
+              description="展开检测明细，查看观测结果与对应建议。"
+            >
+              <button
+                className="text-button"
+                disabled={!ready}
+                onClick={copyReport}
+              >
+                {copied === "report" ? <Check /> : <Copy />}
+                {copied === "report" ? "已复制报告" : "复制文本报告"}
+              </button>
+            </SectionTitle>
+            {visibleReport ? (
+              <div className="audit-panel">
+                {visibleReport.assessment.findings.map((item) => (
+                  <details key={item.id} className="audit-item">
+                    <summary>
+                      <span className={`finding-icon ${item.severity}`}>
+                        {item.severity === "pass" ? (
+                          <Check />
+                        ) : item.severity === "info" ? (
+                          <CircleHelp />
+                        ) : (
+                          <TriangleAlert />
+                        )}
+                      </span>
+                      <strong>{item.title}</strong>
+                      <Badge tone={item.severity}>
+                        {severityLabel[item.severity]}
+                      </Badge>
+                      <span className="finding-impact">{item.impact}</span>
+                      <ChevronRight className="audit-chevron" />
+                    </summary>
+                    <div className="audit-detail">
+                      <p>{redact(item.detail)}</p>
+                      {item.remediation && (
+                        <p className="remediation">
+                          <strong>建议</strong>
+                          {redact(item.remediation)}
+                        </p>
+                      )}
+                    </div>
+                  </details>
+                ))}
+              </div>
+            ) : (
+              <div className="empty-audit">
+                <ScanLine />
+                <p>
+                  {loading
+                    ? "检测完成后，这里会显示完整的审计依据。"
+                    : "完成一次检测后查看明细。"}
+                </p>
+              </div>
             )}
-          />
-        </div>
+          </section>
+
+          <div className="report-share">
+            <div>
+              <span className="share-icon">
+                <Share2 />
+              </span>
+              <div>
+                <h3>分享一份清晰的环境快照</h3>
+                <p>生成可保存的检测海报，IP 按当前隐私设置展示。</p>
+              </div>
+            </div>
+            <button
+              className="button secondary"
+              disabled={!ready}
+              onClick={() => setShareOpen(true)}
+            >
+              <Share2 />
+              分享检测报告
+              <ArrowUpRight />
+            </button>
+          </div>
+          <footer className="page-footer">
+            <div>
+              <span className="footer-brand">
+                <AudioLines />
+                ccenv.
+              </span>
+              <span>让连接更清晰，让创作更专注。</span>
+            </div>
+            <div>
+              <a href="https://modeldial.com" target="_blank" rel="noreferrer">
+                ModelDial
+                <ArrowUpRight />
+              </a>
+              <a
+                href="https://github.com/NanmiCoder/cc-haha"
+                target="_blank"
+                rel="noreferrer"
+              >
+                CC Haha
+                <ArrowUpRight />
+              </a>
+              <a href="mailto:relakkes@gmail.com">
+                合作与支持
+                <ArrowUpRight />
+              </a>
+            </div>
+          </footer>
+          <div className="footer-disclaimer">
+            <LockKeyhole />
+            检测结果仅反映当前浏览器的网络观测，不保证账号安全或终端连通性。
+            <span>Built for the Claude community.</span>
+          </div>
+        </main>
       </div>
-
-      {/* Share Report Modal with QR Code */}
+      <div className="copy-announcement" role="status">
+        {copied ? "已复制到剪贴板" : ""}
+      </div>
+      {copyError && (
+        <div className="toast" role="alert">
+          无法访问剪贴板，请检查浏览器权限。
+          <button aria-label="关闭提示" onClick={() => setCopyError(false)}>
+            <X />
+          </button>
+        </div>
+      )}
       {report && (
         <ShareReportModal
           open={shareOpen}
@@ -1242,8 +1331,8 @@ export default function App() {
           browser={report.browser}
           assessment={report.assessment}
           scannedAt={report.scannedAt}
-          onCopyText={handleCopyReport}
-          copied={copied}
+          onCopyText={copyReport}
+          copied={copied === "report"}
         />
       )}
     </div>

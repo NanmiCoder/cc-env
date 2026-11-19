@@ -1,11 +1,16 @@
 <!doctype html>
-<html lang="zh-CN" class="dark">
+<html lang="zh-CN" class="light">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
     <meta name="renderer" content="webkit" />
-    <meta name="theme-color" content="#0B0B0D" />
+    <meta name="theme-color" content="#f7f8fa" />
+    <script>
+      try {
+        document.documentElement.className = localStorage.getItem('claudeguard:theme') === 'dark' ? 'dark' : 'light';
+      } catch {}
+    </script>
     <title>CC Env · Claude Code / Anthropic 环境风控与 IP 纯净度体检台</title>
     <meta
       name="description"
@@ -63,7 +68,7 @@
       rel="stylesheet"
     />
   </head>
-  <body class="bg-[#0B0B0D] text-zinc-100 antialiased selection:bg-zinc-500/25 selection:text-zinc-100">
+  <body>
     <div id="root"></div>
     <noscript>
       <main style="max-width:720px;margin:48px auto;padding:0 20px;font-family:sans-serif;line-height:1.7;">
