@@ -221,15 +221,13 @@ export async function probeWebRTC(
         // The peer may already be closed.
       }
 
-      const ips = [...publicIps];
       const expectedNormalized = expectedExitIp.toLowerCase();
+      const isMismatch = (ip: string) => ip.toLowerCase() !== expectedNormalized;
+      // Mismatched IPs first so consumers that show a single IP show the leaked one.
+      const ips = [...publicIps].sort((a, b) => Number(isMismatch(b)) - Number(isMismatch(a)));
       resolve({
         supported: true,
-        status: ips.length
-          ? ips.some((ip) => ip.toLowerCase() !== expectedNormalized)
-            ? 'leaked'
-            : 'matched'
-          : 'unknown',
+        status: ips.length ? (ips.some(isMismatch) ? 'leaked' : 'matched') : 'unknown',
         publicIps: ips,
         localCandidates: [...localCandidates],
         candidateCount,

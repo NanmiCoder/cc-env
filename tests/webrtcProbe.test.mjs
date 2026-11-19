@@ -361,3 +361,54 @@ test('evaluateRisk treats unknown WebRTC as incomplete info rather than protecte
   assert.equal(assessment.categories.find((c) => c.key === 'leak')?.score, 13);
   assert.equal(assessment.score, 98);
 });
+
+test('leaked result lists mismatched public IPs before the exit IP', async (t) => {
+  const FakePeer = mockWebRtcPeer(t);
+  const pending = probeWebRTC('140.232.64.2');
+  const peer = FakePeer.instance;
+
+  peer.onicecandidate(iceCandidate('140.232.64.2'));
+  peer.onicecandidate(iceCandidate('140.232.64.6'));
+  peer.onicecandidate({ candidate: null });
+
+  const result = await pending;
+  assert.equal(result.status, 'leaked');
+  assert.deepEqual(result.publicIps, ['140.232.64.6', '140.232.64.2']);
+});
+
+test('evaluateRisk WebRTC leak detail excludes the HTTP exit IP', () => {
+  const input = riskFixture();
+  const exitIp = input.server.ip;
+  const webrtcBase = {
+    supported: true,
+    status: 'leaked',
+    publicIps: ['171.212.0.1', exitIp],
+    localCandidates: [],
+    candidateCount: 2,
+    iceErrorCount: 0,
+  };
+  const leakDetail = (webrtc) =>
+    evaluateRisk(
+      input.server,
+      input.domesticIp,
+      input.dnsLeak,
+      input.dualStack,
+      webrtc,
+      input.splitTunnel,
+      input.browser
+    ).findings.find((f) => f.id === 'webrtc-leak')?.detail;
+
+  const withoutGeo = leakDetail({ ...webrtcBase, ipDetails: [] });
+  assert.ok(withoutGeo.includes('171.212.0.1'));
+  assert.ok(!withoutGeo.includes(`：${exitIp}`) && !withoutGeo.includes(`, ${exitIp}`));
+
+  const withGeo = leakDetail({
+    ...webrtcBase,
+    ipDetails: [
+      { ip: '171.212.0.1', country: 'CN', city: 'Chengdu', isp: 'China Telecom' },
+      { ip: exitIp, country: 'US', city: 'Los Angeles', isp: 'Comcast' },
+    ],
+  });
+  assert.ok(withGeo.includes('171.212.0.1 (CN · Chengdu · China Telecom)'));
+  assert.ok(!withGeo.includes('Comcast'));
+});

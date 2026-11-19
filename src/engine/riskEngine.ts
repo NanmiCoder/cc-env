@@ -179,7 +179,10 @@ export function evaluateRisk(
   let leakScore = 15;
   if (webrtc.status === 'leaked') {
     leakScore -= 8;
+    const exitIp = server.ip.toLowerCase();
+    const leakedIps = webrtc.publicIps.filter((ip) => ip.toLowerCase() !== exitIp);
     const detailLocations = webrtc.ipDetails
+      .filter((d) => d.ip.toLowerCase() !== exitIp)
       .map((d) => `${d.ip}${d.country ? ` (${d.country}${d.city ? ` · ${d.city}` : ''}${d.isp ? ` · ${d.isp}` : ''})` : ''}`)
       .join('；');
     findings.push({
@@ -187,7 +190,7 @@ export function evaluateRisk(
       category: 'leak',
       title: 'WebRTC UDP 真实公网 IP 泄露',
       severity: 'danger',
-      detail: `STUN 探测暴露出与 HTTP 出口 (${server.ip}) 不一致的公网 IP：${detailLocations || webrtc.publicIps.join(', ')}。`,
+      detail: `STUN 探测暴露出与 HTTP 出口 (${server.ip}) 不一致的公网 IP：${detailLocations || leakedIps.join(', ')}。`,
       impact: '-8 分',
       remediation: '请在代理工具中开启 UDP 转发，或在浏览器中禁用 WebRTC（或安装 WebRTC Control 扩展）。',
     });
