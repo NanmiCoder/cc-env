@@ -9,7 +9,7 @@
   --sunk: #eae5d9;
   --ink: #1d1c19;
   --ink-2: #57534a;
-  --ink-3: #8b8679;
+  --ink-3: #6f6a5e;
   --line: #dcd6c8;
   --clay: #c15f3c;
   --clay-ink: #fff8f3;
@@ -17,6 +17,8 @@
   --warn: #b0741a;
   --bad: #c2402f;
   --term: #1d1c19;
+  --sk-base: #e4decf;
+  --sk-shine: #f7f4ec;
   --term-ink: #ece7dc;
 }
 
@@ -27,7 +29,7 @@ html.dark {
   --sunk: #121110;
   --ink: #f0ebe1;
   --ink-2: #b7b1a4;
-  --ink-3: #7e796d;
+  --ink-3: #8f8a7d;
   --line: #34312a;
   --clay: #e0805f;
   --clay-ink: #1b1108;
@@ -35,6 +37,8 @@ html.dark {
   --warn: #e2ab4f;
   --bad: #f07f70;
   --term: #0e0d0c;
+  --sk-base: #2a2823;
+  --sk-shine: #3d3a32;
   --term-ink: #ece7dc;
 }
 
@@ -160,11 +164,26 @@ button:disabled {
   animation: blink 1.1s ease-in-out infinite;
 }
 
+@keyframes shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+.sk {
+  display: block;
+  max-width: 100%;
+  border-radius: 6px;
+  background: linear-gradient(100deg, var(--sk-base) 35%, var(--sk-shine) 50%, var(--sk-base) 65%) 0 0 /
+    200% 100%;
+  animation: shimmer 1.5s linear infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .rise,
   .flow,
   .sweep,
-  .blink {
+  .blink,
+  .sk {
     animation: none;
   }
   html {

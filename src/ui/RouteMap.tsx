@@ -215,7 +215,9 @@ export default function RouteMap({
             <div>
               <Ip value={dnsLeak.dnsIp} hidden={hideIp} onToggle={onToggleIp} />
             </div>
-            <div className="truncate text-ink-3">{dnsLeak.dnsGeo || '-'}</div>
+            <div className="truncate text-ink-3" title={dnsLeak.dnsGeo || undefined}>
+              {dnsLeak.dnsGeo || '-'}
+            </div>
           </Bypass>
 
           <Bypass

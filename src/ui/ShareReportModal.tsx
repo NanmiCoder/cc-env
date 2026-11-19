@@ -102,6 +102,15 @@ export default function ShareReportModal({
 
   useEffect(() => {
     if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [open, onClose]);
+
+  useEffect(() => {
+    if (!open) return;
     let cancelled = false;
 
     const generatePoster = async () => {
@@ -484,7 +493,12 @@ export default function ShareReportModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+      role="dialog"
+      aria-modal="true"
+      aria-label="分享海报"
+    >
       <div className="relative w-full max-w-lg overflow-hidden rounded-2xl border border-[var(--line)] bg-[var(--paper)] shadow-2xl">
         {/* Modal Header */}
         <div className="flex items-center justify-between border-b border-[var(--line)] px-5 py-3.5">
