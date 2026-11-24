@@ -3,7 +3,7 @@ interface Env {
 }
 
 interface IpIntelResult {
-  source: 'ipapi.is' | 'ip-api.com' | 'ipwho.is' | 'cf-local';
+  source: 'ipapi.is' | 'ipwho.is' | 'cf-local';
   isDatacenter: boolean | null;
   isProxy: boolean | null;
   isVpn: boolean | null;
@@ -142,7 +142,7 @@ async function fetchWithTimeout(url: string, ms: number): Promise<Response> {
 }
 
 async function queryIpIntel(ip: string, env: Env): Promise<IpIntelResult> {
-  const cacheKey = `ip-intel:v2:${ip}`;
+  const cacheKey = `ip-intel:v3:${ip}`;
 
   // 1. Check KV if bound
   if (env.IP_CACHE) {
@@ -228,7 +228,7 @@ async function queryIpIntel(ip: string, env: Env): Promise<IpIntelResult> {
             org: parsedOrg,
           };
         } else {
-          // Store partial info so ip-api.com can enrich hosting/proxy/mobile flags
+          // Preserve partial data without inferring provider flags.
           result = {
             source: 'ipapi.is',
             isDatacenter: null,
@@ -255,60 +255,7 @@ async function queryIpIntel(ip: string, env: Env): Promise<IpIntelResult> {
     // fallback below
   }
 
-  // 4. Secondary / Enrichment: ip-api.com (provides explicit hosting / proxy / mobile / isp flags)
-  if (!result || result.isDatacenter === null) {
-    try {
-      const res = await fetchWithTimeout(
-        `http://ip-api.com/json/${encodeURIComponent(ip)}?fields=status,countryCode,regionName,city,timezone,isp,org,as,mobile,proxy,hosting,query`,
-        2800
-      );
-      if (res.ok) {
-        const d = (await res.json()) as Record<string, unknown>;
-        if (d.status === 'success') {
-          const asStr = typeof d.as === 'string' ? d.as : '';
-          const m = asStr.match(/^AS(\d+)\s*(.*)$/i);
-          const asnNum = m ? Number(m[1]) : result?.asn ?? null;
-          const orgStr = (typeof d.org === 'string' && d.org) || (m?.[2]?.trim() ?? null) || result?.org || null;
-          const ispStr = (typeof d.isp === 'string' && d.isp) || result?.companyName || null;
-          const isHosting = typeof d.hosting === 'boolean' ? d.hosting : null;
-          const isProxy = typeof d.proxy === 'boolean' ? d.proxy : null;
-          const isMobile = typeof d.mobile === 'boolean' ? d.mobile : null;
-          const heuristic = classifyOrgHeuristic(asnNum, `${ispStr || ''} ${orgStr || ''}`.trim());
-
-          const inferredCompanyType =
-            isHosting === true || heuristic.type === 'datacenter'
-              ? 'hosting'
-              : isHosting === false && isProxy === false && (ispStr || isMobile)
-                ? 'isp'
-                : null;
-
-          result = {
-            source: 'ip-api.com',
-            isDatacenter: isHosting,
-            isProxy,
-            isVpn: result?.isVpn ?? null,
-            isTor: result?.isTor ?? null,
-            isAbuser: result?.isAbuser ?? null,
-            isMobile,
-            companyType: inferredCompanyType,
-            companyName: ispStr,
-            asnType: inferredCompanyType,
-            abuserScore: result?.abuserScore ?? null,
-            timezone: (typeof d.timezone === 'string' ? d.timezone : null) ?? result?.timezone ?? null,
-            countryCode: (typeof d.countryCode === 'string' ? d.countryCode : null) ?? result?.countryCode ?? null,
-            city: (typeof d.city === 'string' ? d.city : null) ?? result?.city ?? null,
-            region: (typeof d.regionName === 'string' ? d.regionName : null) ?? result?.region ?? null,
-            asn: asnNum,
-            org: orgStr,
-          };
-        }
-      }
-    } catch {
-      // fallback below
-    }
-  }
-
-  // 5. Fallback: ipwho.is
+  // 4. Fallback: ipwho.is
   if (!result) {
     try {
       const res = await fetchWithTimeout(`https://ipwho.is/${encodeURIComponent(ip)}`, 3000);
