@@ -1,5 +1,5 @@
 export interface IpIntelResult {
-  source: 'ipapi.is' | 'ip-api.com' | 'ipwho.is' | 'cf-local';
+  source: 'ipapi.is' | 'ipwho.is' | 'cf-local';
   isDatacenter: boolean | null;
   isProxy: boolean | null;
   isVpn: boolean | null;

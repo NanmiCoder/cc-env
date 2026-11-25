@@ -37,7 +37,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
   }
 
   const cfCache = (caches as unknown as { default?: Cache }).default;
-  const cacheUrl = new URL(`https://cache.claudeguard.internal/lookup:v1:${ip}`);
+  const cacheUrl = new URL(`https://cache.claudeguard.internal/lookup:v2:${ip}`);
   if (cfCache) {
     try {
       const hit = await cfCache.match(cacheUrl);
@@ -85,26 +85,6 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         city: typeof ipwho.city === 'string' ? ipwho.city : null,
         isp: typeof conn.isp === 'string' ? conn.isp : typeof conn.org === 'string' ? conn.org : null,
         asn: typeof conn.asn === 'number' ? conn.asn : null,
-      };
-    }
-  }
-
-  if (!info.countryCode) {
-    const ipApiCom = await fetchJson(
-      `http://ip-api.com/json/${encodeURIComponent(ip)}?fields=status,country,countryCode,regionName,city,isp,as`,
-      3000
-    );
-    if (ipApiCom && ipApiCom.status === 'success') {
-      const asStr = typeof ipApiCom.as === 'string' ? ipApiCom.as : '';
-      const asnMatch = asStr.match(/^AS(\d+)/i);
-      info = {
-        ip,
-        country: typeof ipApiCom.country === 'string' ? ipApiCom.country : null,
-        countryCode: typeof ipApiCom.countryCode === 'string' ? ipApiCom.countryCode : null,
-        region: typeof ipApiCom.regionName === 'string' ? ipApiCom.regionName : null,
-        city: typeof ipApiCom.city === 'string' ? ipApiCom.city : null,
-        isp: typeof ipApiCom.isp === 'string' ? ipApiCom.isp : null,
-        asn: asnMatch ? Number(asnMatch[1]) : null,
       };
     }
   }

@@ -15,7 +15,7 @@
     <rect x="0" y="0" width="330" height="114" rx="14" fill="#141417" stroke="#ffffff" stroke-opacity="0.1"/>
     <text x="20" y="28" fill="#10B981" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" font-weight="600">EDGE · /api/inspect</text>
     <text x="20" y="54" fill="#F4F4F6" font-family="-apple-system, BlinkMacSystemFont, 'PingFang SC', sans-serif" font-size="16" font-weight="600">Cloudflare Pages Functions</text>
-    <text x="20" y="78" fill="#A1A1AA" font-family="-apple-system, BlinkMacSystemFont, 'PingFang SC', sans-serif" font-size="13">ipapi.is · ip-api.com · ipwho.is 多源聚合</text>
+    <text x="20" y="78" fill="#A1A1AA" font-family="-apple-system, BlinkMacSystemFont, 'PingFang SC', sans-serif" font-size="13">ipapi.is · ipwho.is 多源聚合</text>
     <text x="20" y="98" fill="#71717A" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11">ASN / Datacenter / Abuser / KV IP_CACHE</text>
 
     <!-- Client Probes Card -->
